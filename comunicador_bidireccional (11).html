@@ -1,0 +1,2042 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Comunicador Bidireccional — NogalesPT</title>
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+:root{
+  --primary:#3b82f6;--primary-dark:#2563eb;--success:#22c55e;--danger:#ef4444;
+  --bg-main:#f8fafc;--text-main:#1e293b;--text-muted:#64748b;--border:#e2e8f0;
+  --radius:1.25rem;
+  --shadow:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -1px rgba(0,0,0,.06);
+  --shadow-md:0 10px 15px -3px rgba(0,0,0,.1);--shadow-sm:0 1px 2px 0 rgba(0,0,0,.05);
+  --font-sans:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --slate-50:#f8fafc;--slate-100:#f1f5f9;--slate-200:#e2e8f0;--slate-400:#94a3b8;
+  --slate-500:#64748b;--slate-600:#475569;--slate-700:#334155;--slate-800:#1e293b;
+  --green-500:#22c55e;--red-400:#f87171;--red-500:#ef4444;--red-600:#dc2626;
+  --purple-500:#a855f7;--blue-400:#60a5fa;--blue-500:#3b82f6;--blue-600:#2563eb;
+  /* AAC dark zone */
+  --aac-bg:#0a0a0f;--aac-card:#12121a;--aac-hover:#1a1a28;--aac-border:#2a2a3e;
+  --aac-text:#e8e8f0;--aac-muted:#6b6b85;--aac-accent:#4f6ef7;--aac-green:#22c55e;
+  --aac-out:#0f0f1a;--aac-r:1rem;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+body{font-family:var(--font-sans);background:var(--bg-main);color:var(--text-main);margin:0;line-height:1.5;min-height:100vh;overflow-x:hidden;-webkit-user-select:none;user-select:none;}
+.app-wrap{display:flex;flex-direction:column;min-height:100vh;}
+
+/* ══ ZONA PROFESOR ══ */
+.t-zone{background:var(--bg-main);padding:1rem;flex-shrink:0;}
+.t-header{display:flex;align-items:center;justify-content:space-between;background:#fff;border-radius:var(--radius);padding:.75rem 1.25rem;border:1px solid var(--border);box-shadow:var(--shadow);margin-bottom:1rem;gap:.5rem;}
+.z-label{display:flex;align-items:center;gap:.5rem;font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--slate-500);}
+.z-label .dot{width:8px;height:8px;border-radius:50%;background:var(--primary);animation:pb 2s infinite;}
+@keyframes pb{0%,100%{opacity:1}50%{opacity:.4}}
+.brand-logo{height:36px;width:auto;}
+.input-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.25rem;box-shadow:var(--shadow);margin-bottom:1rem;}
+textarea{width:100%;padding:.9rem 1rem;background:var(--slate-50);border:2px solid var(--slate-100);border-radius:.875rem;font-size:1.05rem;outline:none;font-family:inherit;transition:border-color .2s,background .2s;resize:none;min-height:80px;margin-bottom:.75rem;color:var(--text-main);}
+textarea:focus{border-color:var(--primary);background:#fff;}
+select,input[type=text]{width:100%;padding:.65rem .875rem;background:var(--slate-50);border:2px solid var(--slate-100);border-radius:.875rem;font-size:.92rem;outline:none;font-family:inherit;transition:border-color .2s;color:var(--text-main);margin-bottom:0;}
+select:focus,input[type=text]:focus{border-color:var(--primary);background:#fff;}
+.action-bar{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;}
+.btn{padding:.75rem 1.1rem;border-radius:.875rem;font-weight:700;cursor:pointer;border:none;display:inline-flex;align-items:center;justify-content:center;gap:.4rem;transition:all .2s cubic-bezier(.4,0,.2,1);font-size:.9rem;user-select:none;}
+.btn:active{transform:scale(.96);}
+.btn-p{background:var(--primary);color:#fff;flex:1;}
+.btn-p:hover{background:var(--primary-dark);}
+.btn-g{background:var(--slate-100);color:var(--slate-600);}
+.btn-g:hover{background:var(--slate-200);color:var(--slate-800);}
+.ic-btn{padding:.6rem;border-radius:50%;background:var(--slate-100);color:var(--slate-500);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.ic-btn:hover{background:var(--slate-200);color:var(--slate-800);}
+.ic-btn-flat{background:none;border:none;color:var(--text-muted);cursor:pointer;display:flex;align-items:center;padding:.4rem;border-radius:.5rem;transition:background .2s;}
+.ic-btn-flat:hover{background:var(--slate-100);}
+
+/* ── Paneles profesor ── */
+.panel{display:none;background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:1rem;box-shadow:var(--shadow);animation:fi .25s ease;}
+.panel.open{display:block;}
+.ph{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--slate-100);padding-bottom:.75rem;margin-bottom:1rem;}
+.ph h3{margin:0;font-size:1rem;display:flex;align-items:center;gap:.5rem;}
+
+/* ── Picto grid tablero ── */
+.p-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;padding:1.25rem;background:#fff;border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);min-height:80px;}
+.p-card{background:var(--slate-50);border:3px solid var(--slate-200);border-radius:1.1rem;overflow:hidden;display:flex;flex-direction:column;transition:all .2s ease;cursor:grab;position:relative;}
+.p-card:hover{transform:translateY(-2px);box-shadow:var(--shadow);}
+.p-card.is-drag{opacity:.45;transform:scale(1.04)!important;box-shadow:var(--shadow-md)!important;border-color:var(--purple-500)!important;z-index:20;cursor:grabbing;}
+.p-active{border-color:var(--green-500)!important;background-color:#f0fdf4!important;}
+.p-img{aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;padding:.75rem;background:#fff;position:relative;}
+.p-img img,.p-img video{max-width:100%;max-height:100%;object-fit:contain;pointer-events:none;display:block;margin:auto;}
+.nav-btn{position:absolute;top:50%;transform:translateY(-50%);background:#fff;border:1px solid var(--slate-200);border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;z-index:10;color:var(--slate-500);box-shadow:var(--shadow-sm);cursor:pointer;padding:0;}
+.nav-prev{left:3px;}.nav-next{right:3px;}
+.p-lbl{background:var(--slate-100);padding:.5rem .4rem;text-align:center;border-top:1px solid var(--slate-200);}
+.p-lbl span{font-weight:700;text-transform:uppercase;font-size:.75rem;color:var(--slate-800);}
+.ov-btn{position:absolute;width:26px;height:26px;border-radius:50%;border:none;background:#fff;color:var(--slate-500);box-shadow:var(--shadow-sm);cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10;transition:all .15s;}
+.ov-btn:hover{background:var(--slate-100);color:var(--text-main);}
+.save-btn{position:absolute;top:6px;left:50%;transform:translateX(-50%);height:24px;padding:0 8px;background:var(--success);color:#fff;border:none;border-radius:6px;font-size:.68rem;font-weight:800;cursor:pointer;display:none;align-items:center;gap:4px;z-index:15;white-space:nowrap;}
+.save-btn.show{display:flex;}
+#drag-ghost{position:fixed;pointer-events:none;z-index:1000;opacity:.82;display:none;width:140px;background:#fff;border-radius:1.1rem;border:3px solid var(--purple-500);box-shadow:var(--shadow-md);overflow:hidden;}
+
+/* ── Modal ARASAAC (tablero) ── */
+.modal-ov{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(15,23,42,.65);z-index:9999;align-items:center;justify-content:center;padding:1rem;}
+.modal-ov.open{display:flex;}
+.modal-card{background:#fff;border-radius:var(--radius);padding:1.5rem;width:100%;max-width:480px;animation:fi .25s ease;}
+.sr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:8px;max-height:240px;overflow-y:auto;margin-top:1rem;padding:.5rem;background:var(--slate-50);border-radius:.75rem;border:1px solid var(--slate-200);}
+.sr-item{border:2px solid transparent;border-radius:.5rem;cursor:pointer;padding:3px;background:#fff;transition:all .15s;}
+.sr-item:hover{transform:scale(1.05);box-shadow:var(--shadow-sm);}
+.sr-item.sel{border-color:var(--primary);}
+.sr-item img{width:100%;height:auto;object-fit:contain;border-radius:.25rem;}
+
+/* ══ DIVISOR ══ */
+.divider{display:flex;align-items:center;gap:1rem;padding:0 1rem;}
+.div-line{flex:1;height:2px;background:var(--aac-border);}
+.div-lbl{font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.12em;color:var(--aac-muted);white-space:nowrap;}
+
+/* ══ ZONA ALUMNO ══ */
+.s-zone{background:var(--aac-bg);flex:1;padding:1rem;}
+.s-zone.fullscreen{position:fixed;top:0;left:0;right:0;bottom:0;width:100vw;height:100dvh;z-index:8000;overflow-y:auto;padding:1rem;}
+body.s-full .t-zone,body.s-full .divider{display:none!important;}
+.s-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.875rem;flex-wrap:wrap;gap:.5rem;}
+.z-label-aac{display:flex;align-items:center;gap:.5rem;font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--aac-muted);}
+.z-label-aac .dot{width:8px;height:8px;border-radius:50%;background:var(--aac-green);animation:pg 2s infinite;}
+@keyframes pg{0%,100%{opacity:1}50%{opacity:.3}}
+.aac-ic-acts{display:flex;gap:.4rem;}
+.aac-ic{padding:.5rem;border-radius:50%;background:var(--aac-card);border:1.5px solid var(--aac-border);color:var(--aac-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.aac-ic:hover{border-color:var(--aac-accent);color:var(--aac-text);}
+
+/* ── Paneles AAC ── */
+.aac-panel{display:none;background:var(--aac-card);border:1.5px solid var(--aac-border);border-radius:var(--aac-r);padding:1.25rem;margin-bottom:.875rem;animation:fi .25s ease;}
+.aac-panel.open{display:block;}
+.aph{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--aac-border);padding-bottom:.75rem;margin-bottom:1rem;}
+.aph h3{margin:0;font-size:.92rem;color:var(--aac-text);display:flex;align-items:center;gap:.5rem;}
+.a-inp{width:100%;padding:.65rem .875rem;background:var(--aac-out);border:1.5px solid var(--aac-border);border-radius:.75rem;font-size:.88rem;color:var(--aac-text);font-family:inherit;outline:none;transition:border-color .2s;margin-bottom:.75rem;}
+.a-inp:focus{border-color:var(--aac-accent);}
+.a-sel{width:100%;padding:.65rem .875rem;background:var(--aac-out);border:1.5px solid var(--aac-border);border-radius:.75rem;font-size:.88rem;color:var(--aac-text);font-family:inherit;outline:none;margin-bottom:.75rem;}
+.a-btn{padding:.6rem 1rem;border-radius:.75rem;font-weight:700;cursor:pointer;border:1.5px solid var(--aac-border);background:var(--aac-card);color:var(--aac-text);font-size:.83rem;display:inline-flex;align-items:center;gap:.35rem;transition:all .15s;}
+.a-btn:hover{background:var(--aac-hover);border-color:var(--aac-accent);}
+.a-btn.ap{background:var(--aac-accent);border-color:var(--aac-accent);color:#fff;}
+.a-btn.ap:hover{filter:brightness(1.15);}
+.mtabs{display:flex;gap:.25rem;margin-bottom:.75rem;}
+.mtab{padding:.4rem .7rem;border-radius:.5rem;border:1.5px solid var(--aac-border);background:var(--aac-out);color:var(--aac-muted);cursor:pointer;font-size:.75rem;font-weight:700;transition:all .15s;}
+.mtab.on{background:var(--aac-accent);color:#fff;border-color:var(--aac-accent);}
+.chip-list{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.75rem;}
+.chip{display:flex;align-items:center;gap:5px;background:var(--aac-out);border:1px solid var(--aac-border);padding:3px 8px 3px 4px;border-radius:20px;font-size:.7rem;color:var(--aac-muted);}
+.chip img,.chip video{width:18px;height:18px;border-radius:50%;object-fit:cover;}
+.chip button{background:none;border:none;color:var(--red-400);cursor:pointer;padding:0;display:flex;align-items:center;}
+
+/* ── Output bar ── */
+.out-bar{background:var(--aac-out);border:1.5px solid var(--aac-border);border-radius:var(--aac-r);padding:.6rem .75rem;margin-bottom:.875rem;display:flex;align-items:center;gap:.5rem;min-height:74px;flex-wrap:wrap;overflow-x:auto;}
+.out-empty{color:var(--aac-muted);font-size:.82rem;font-style:italic;}
+.out-tok{display:flex;flex-direction:column;align-items:center;gap:3px;background:var(--aac-card);border:1.5px solid var(--aac-border);border-radius:.6rem;padding:4px 6px;cursor:pointer;transition:all .15s;min-width:54px;}
+.out-tok:hover{background:var(--aac-hover);border-color:var(--aac-accent);}
+.out-tok img,.out-tok video{width:42px;height:42px;object-fit:contain;border-radius:.3rem;}
+.tok-w{font-size:.6rem;font-weight:700;text-transform:uppercase;color:var(--aac-text);text-align:center;line-height:1;}
+.tok-t{font-size:.55rem;color:var(--aac-muted);text-align:center;line-height:1;margin-top:1px;}
+.bar-acts{display:flex;gap:.4rem;margin-left:auto;flex-shrink:0;}
+.s-btn{padding:.4rem .65rem;border-radius:.6rem;border:1.5px solid var(--aac-border);background:var(--aac-card);color:var(--aac-text);font-size:.75rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:.3rem;transition:all .15s;}
+.s-btn:hover{background:var(--aac-hover);border-color:var(--aac-accent);}
+.s-btn.danger:hover{border-color:var(--red-500);color:var(--red-400);}
+.s-btn.speak{background:var(--aac-accent);border-color:var(--aac-accent);color:#fff;}
+.s-btn.speak:hover{filter:brightness(1.15);}
+
+/* ── Nav AAC ── */
+.aac-nav{display:flex;gap:.4rem;overflow-x:auto;padding-bottom:.25rem;-ms-overflow-style:none;scrollbar-width:none;}
+.aac-nav::-webkit-scrollbar{display:none;}
+.nav-pill{padding:.4rem .8rem;border-radius:999px;background:var(--aac-card);border:1.5px solid var(--aac-border);color:var(--aac-muted);font-size:.72rem;font-weight:700;cursor:pointer;white-space:nowrap;transition:all .2s;display:flex;align-items:center;gap:.3rem;flex-shrink:0;}
+.nav-pill:hover{color:var(--aac-text);}
+.nav-pill.on{color:#fff;border-style:solid;}
+/* Pill "Todos" */
+.nav-pill.all-pill{border-style:dashed;}
+.nav-pill.all-pill.on{background:var(--aac-muted);border-color:var(--aac-muted);border-style:solid;}
+.back-pill{display:none;padding:.4rem .8rem;border-radius:999px;background:var(--aac-card);border:1.5px solid #ff8c00;color:#ffa500;font-size:.72rem;font-weight:700;cursor:pointer;align-items:center;gap:.3rem;flex-shrink:0;transition:all .15s;}
+.back-pill:hover{background:var(--aac-hover);}
+.back-pill.show{display:flex;}
+/* Separador de sección dentro del grid expandido */
+.aac-cat-sep{grid-column:1/-1;display:flex;align-items:center;gap:.6rem;padding:.5rem 0 .25rem;}
+.aac-cat-sep-line{flex:1;height:1px;background:var(--aac-border);}
+.aac-cat-sep-lbl{font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;white-space:nowrap;padding:2px 8px;border-radius:999px;border:1.5px solid;}
+/* Grid ampliado en fullscreen */
+.s-zone.fullscreen .aac-grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;}
+@media(min-width:600px){.s-zone.fullscreen .aac-grid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:12px;}}
+@media(min-width:900px){.s-zone.fullscreen .aac-grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:14px;}}
+
+/* ── AAC Grid ── */
+.aac-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(115px,1fr));gap:10px;}
+
+/* ── Card comunicador — diseñada para uso táctil ── */
+.aac-p-card{
+  background:var(--aac-card);
+  border:3px solid var(--aac-border);
+  border-radius:1.25rem;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  cursor:pointer;
+  transition:transform .12s ease, box-shadow .12s ease, border-color .15s;
+  position:relative;
+  -webkit-tap-highlight-color:transparent;
+}
+.aac-p-card:hover{
+  transform:translateY(-3px);
+  box-shadow:0 8px 24px rgba(0,0,0,.35);
+}
+.aac-p-card:active{
+  transform:scale(.92);
+  box-shadow:0 2px 8px rgba(0,0,0,.3);
+}
+/* Tarjeta de categoría: borde más grueso y esquinas más redondeadas */
+.aac-p-card.is-cat{
+  border-width:4px;
+  border-radius:1.5rem;
+}
+.aac-p-card.is-cat:active{transform:scale(.9);}
+
+/* Zona de imagen: fondo blanco para que los pictogramas ARASAAC se vean bien */
+.aac-p-img{
+  aspect-ratio:1/1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:.5rem;
+  background:#ffffff;
+  position:relative;
+}
+.aac-p-img img,.aac-p-img video{
+  max-width:100%;max-height:100%;object-fit:contain;
+  display:block;margin:auto;
+}
+/* Categoría: fondo ligeramente coloreado */
+.aac-p-card.is-cat .aac-p-img{background:#f8f9ff;}
+
+.cat-img-placeholder{font-size:2.4rem;}
+
+/* Etiqueta de palabra — grande y legible */
+.aac-p-lbl{
+  padding:.5rem .35rem;
+  text-align:center;
+  border-top:2px solid;
+  border-color:inherit;
+  background:var(--aac-card);
+}
+.aac-p-lbl span{
+  font-size:.78rem;
+  font-weight:800;
+  text-transform:uppercase;
+  color:var(--aac-text);
+  letter-spacing:.02em;
+  display:block;
+  line-height:1.2;
+}
+.aac-p-lbl .trl{
+  font-size:.65rem;
+  color:var(--aac-muted);
+  text-transform:none;
+  font-weight:600;
+  margin-top:2px;
+  display:block;
+  line-height:1.2;
+}
+
+/* Badge de categoría */
+.cat-badge{
+  position:absolute;top:5px;right:5px;
+  border-radius:6px;padding:2px 7px;
+  font-size:.58rem;font-weight:800;
+  color:#fff;text-transform:uppercase;
+  letter-spacing:.04em;
+}
+.custom-badge{
+  position:absolute;top:5px;left:5px;
+  background:var(--aac-accent);
+  border-radius:6px;padding:2px 7px;
+  font-size:.58rem;font-weight:800;color:#fff;text-transform:uppercase;
+}
+
+/* Flechas de imagen — más grandes para táctil */
+.aac-nav-img-btn{
+  position:absolute;top:50%;transform:translateY(-50%);
+  background:rgba(0,0,0,.18);
+  border:1.5px solid rgba(255,255,255,.3);
+  border-radius:50%;
+  width:28px;height:28px;
+  display:flex;align-items:center;justify-content:center;
+  z-index:10;color:#fff;cursor:pointer;padding:0;
+  transition:background .15s;
+}
+.aac-nav-img-btn:hover{background:rgba(0,0,0,.38);}
+.aac-nav-img-btn:active{background:rgba(0,0,0,.55);}
+.aac-nav-prev{left:3px;}.aac-nav-next{right:3px;}
+
+/* ── Output bar — barra de frase construida ── */
+.out-bar{
+  background:var(--aac-out);
+  border:2px solid var(--aac-border);
+  border-radius:1.1rem;
+  padding:.6rem .75rem;
+  margin-bottom:.875rem;
+  display:flex;
+  align-items:center;
+  gap:.5rem;
+  min-height:80px;
+  flex-wrap:wrap;
+  overflow-x:auto;
+}
+.out-empty{color:var(--aac-muted);font-size:.82rem;font-style:italic;}
+
+/* Token en la barra de respuesta */
+.out-tok{
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  background:#ffffff;
+  border:2.5px solid var(--aac-border);
+  border-radius:.875rem;
+  padding:5px 7px;
+  cursor:pointer;
+  transition:all .15s;
+  min-width:60px;
+  position:relative;
+}
+.out-tok:hover{border-color:var(--red-400);box-shadow:0 0 0 3px rgba(239,68,68,.15);}
+.out-tok:active{transform:scale(.9);}
+.out-tok img,.out-tok video{
+  width:50px;height:50px;object-fit:contain;border-radius:.4rem;
+}
+.tok-w{
+  font-size:.62rem;font-weight:800;text-transform:uppercase;
+  color:var(--slate-800);text-align:center;line-height:1;
+}
+.tok-t{font-size:.56rem;color:var(--slate-500);text-align:center;line-height:1;margin-top:1px;}
+/* X de borrar individual en el token */
+.tok-del{
+  position:absolute;top:-6px;right:-6px;
+  width:18px;height:18px;border-radius:50%;
+  background:var(--red-500);border:2px solid #fff;
+  color:#fff;font-size:.7rem;font-weight:900;
+  display:none;align-items:center;justify-content:center;
+  cursor:pointer;line-height:1;
+}
+.out-tok:hover .tok-del{display:flex;}
+
+.bar-acts{display:flex;gap:.4rem;margin-left:auto;flex-shrink:0;}
+.s-btn{
+  padding:.5rem .8rem;border-radius:.75rem;
+  border:1.5px solid var(--aac-border);
+  background:var(--aac-card);color:var(--aac-text);
+  font-size:.78rem;font-weight:700;cursor:pointer;
+  display:flex;align-items:center;gap:.3rem;transition:all .15s;
+}
+.s-btn:hover{background:var(--aac-hover);border-color:var(--aac-accent);}
+.s-btn:active{transform:scale(.95);}
+.s-btn.danger:hover{border-color:var(--red-500);color:var(--red-400);}
+.s-btn.speak{
+  background:var(--aac-accent);border-color:var(--aac-accent);color:#fff;
+  padding:.5rem 1rem;font-size:.82rem;
+}
+.s-btn.speak:hover{filter:brightness(1.12);}
+
+/* Grid ampliado en fullscreen */
+.s-zone.fullscreen .aac-grid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;}
+@media(min-width:600px){.s-zone.fullscreen .aac-grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;}}
+@media(min-width:900px){.s-zone.fullscreen .aac-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:14px;}}
+
+/* ══ EDITOR PANTALLA COMPLETA ══ */
+.editor-ov{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:var(--aac-bg);z-index:9000;overflow-y:auto;padding:1rem;animation:fi .2s ease;}
+.editor-ov.open{display:block;}
+.ed-header{display:flex;align-items:center;justify-content:space-between;background:var(--aac-card);border:1.5px solid var(--aac-border);border-radius:var(--aac-r);padding:.875rem 1.25rem;margin-bottom:1rem;gap:.5rem;flex-wrap:wrap;}
+.ed-title{font-size:1rem;font-weight:800;color:var(--aac-text);display:flex;align-items:center;gap:.5rem;}
+.ed-acts{display:flex;gap:.4rem;flex-wrap:wrap;}
+
+/* Lista categorías en editor */
+.ed-cat-list{display:flex;flex-direction:column;gap:.75rem;}
+.ed-cat-item{background:var(--aac-card);border:1.5px solid var(--aac-border);border-radius:var(--aac-r);overflow:hidden;}
+.ed-cat-hdr{display:flex;align-items:center;gap:.6rem;padding:.75rem 1rem;cursor:pointer;transition:background .15s;}
+.ed-cat-hdr:hover{background:var(--aac-hover);}
+.ed-cat-picto{width:40px;height:40px;border-radius:.5rem;overflow:hidden;flex-shrink:0;background:#0d0d16;display:flex;align-items:center;justify-content:center;border:2px solid;}
+.ed-cat-picto img,.ed-cat-picto video{max-width:100%;max-height:100%;object-fit:contain;}
+.ed-cat-name{font-weight:700;font-size:.9rem;color:var(--aac-text);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ed-cat-count{font-size:.7rem;color:var(--aac-muted);background:var(--aac-out);padding:2px 8px;border-radius:999px;white-space:nowrap;flex-shrink:0;}
+.ed-cat-acts{display:flex;gap:.25rem;flex-shrink:0;}
+.ed-ic{padding:.35rem;border-radius:.5rem;border:none;background:transparent;color:var(--aac-muted);cursor:pointer;display:flex;align-items:center;transition:all .15s;}
+.ed-ic:hover{background:var(--aac-out);color:var(--aac-text);}
+.ed-ic.del:hover{color:var(--red-400);}
+/* Palabras dentro de categoría en editor — mismas cards que el tablero */
+.ed-word-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;padding:.875rem;border-top:1px solid var(--aac-border);background:var(--aac-out);}
+.ed-word-card{background:var(--aac-card);border:3px solid var(--aac-border);border-radius:1.1rem;overflow:hidden;display:flex;flex-direction:column;position:relative;}
+.ed-word-img{aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;padding:.6rem;background:#0d0d16;position:relative;}
+.ed-word-img img,.ed-word-img video{max-width:100%;max-height:100%;object-fit:contain;}
+.ed-word-lbl{background:#0f0f1a;padding:.4rem .3rem;text-align:center;border-top:1px solid var(--aac-border);}
+.ed-word-lbl span{font-size:.72rem;font-weight:700;text-transform:uppercase;color:var(--aac-text);display:block;}
+.ed-word-del{position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;background:var(--red-500);border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:900;z-index:5;}
+.ed-word-del:hover{background:var(--red-600);}
+.ed-word-nav{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;z-index:10;color:#fff;cursor:pointer;padding:0;}
+.ed-word-nav:hover{background:rgba(255,255,255,.25);}
+.ed-word-prev{left:2px;}.ed-word-next{right:2px;}
+/* Botón añadir palabra */
+.ed-add-word{background:var(--aac-hover);border:2px dashed var(--aac-border);border-radius:1.1rem;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:.75rem .5rem;cursor:pointer;transition:all .15s;min-height:110px;aspect-ratio:1;}
+.ed-add-word:hover{border-color:var(--aac-accent);background:var(--aac-card);}
+.ed-add-word span{font-size:.65rem;color:var(--aac-muted);text-align:center;}
+
+/* Panel nueva categoría en editor */
+.ed-new-cat{background:var(--aac-card);border:1.5px solid var(--aac-accent);border-radius:var(--aac-r);padding:1.25rem;margin-bottom:1rem;}
+.ed-new-cat h4{margin:0 0 .875rem;font-size:.9rem;color:var(--aac-text);display:flex;align-items:center;gap:.5rem;}
+/* Picto selector de categoría */
+.cat-picto-preview{width:70px;height:70px;border-radius:.75rem;background:#0d0d16;border:2px solid var(--aac-accent);display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer;flex-shrink:0;position:relative;}
+.cat-picto-preview img{max-width:100%;max-height:100%;object-fit:contain;}
+.cat-picto-preview .placeholder{color:var(--aac-muted);font-size:.65rem;text-align:center;padding:.3rem;}
+
+/* ══ MODALES (añadir palabra / editar cat) ══ */
+.dlg-ov{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.78);z-index:9500;align-items:center;justify-content:center;padding:1rem;}
+.dlg-ov.open{display:flex;}
+.dlg-card{background:var(--aac-card);border:1.5px solid var(--aac-border);border-radius:var(--aac-r);padding:1.5rem;width:100%;max-width:460px;animation:fi .2s ease;max-height:90dvh;overflow-y:auto;}
+.dlg-card h3{margin:0 0 1rem;font-size:1rem;color:var(--aac-text);display:flex;align-items:center;gap:.5rem;}
+.aac-sr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(65px,1fr));gap:6px;max-height:200px;overflow-y:auto;margin-top:.75rem;padding:.5rem;background:var(--aac-out);border-radius:.75rem;border:1px solid var(--aac-border);}
+.aac-sr-item{border:2px solid transparent;border-radius:.5rem;cursor:pointer;padding:3px;background:var(--aac-card);transition:all .15s;}
+.aac-sr-item:hover{transform:scale(1.05);}
+.aac-sr-item.on{border-color:var(--aac-accent);}
+.aac-sr-item img{width:100%;height:auto;object-fit:contain;border-radius:3px;}
+
+/* misc */
+#loading-t{display:none;text-align:center;padding:1.5rem;flex-direction:column;align-items:center;gap:.75rem;}
+#loading-aac{display:none;color:var(--aac-muted);font-size:.82rem;padding:1.5rem;text-align:center;}
+.spin{animation:rot 1.5s linear infinite;}
+@keyframes rot{100%{transform:rotate(360deg)}}
+#toast{display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--slate-800);color:#fff;padding:.65rem 1.25rem;border-radius:999px;z-index:10000;box-shadow:var(--shadow-md);font-size:.85rem;font-weight:600;white-space:nowrap;}
+@keyframes fi{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fi .25s ease;}
+@keyframes pm{0%{box-shadow:0 0 0 0 rgba(239,68,68,.4)}70%{box-shadow:0 0 0 10px rgba(239,68,68,0)}100%{box-shadow:0 0 0 0 rgba(239,68,68,0)}}
+.mic-on{background:var(--danger)!important;color:#fff!important;animation:pm 1.5s infinite;}
+/* Escucha activa: orbe en estado idle (esperando wake word) */
+@keyframes wakeIdle{0%,100%{opacity:.4;transform:scale(1);}50%{opacity:1;transform:scale(1.3);}}
+/* Orbe en estado de dictado activo (tras detectar wake word) */
+@keyframes wakeListen{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.5);}50%{box-shadow:0 0 0 8px rgba(239,68,68,0);}}
+.wake-btn-on{background:#1e3a5f!important;color:#60a5fa!important;border-radius:50%;box-shadow:0 0 0 3px rgba(59,130,246,.35);}
+/* Barra de escucha: color del borde según estado */
+#wakeBar.state-reconnecting{border-color:#f59e0b!important;}
+#wakeBar.state-listening{border-color:#ef4444!important;}
+@media(max-width:640px){
+  .t-zone,.s-zone{padding:.75rem;}
+  .p-grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;padding:.875rem;}
+  .aac-grid{grid-template-columns:repeat(auto-fill,minmax(82px,1fr));gap:6px;}
+  textarea{min-height:60px;font-size:1rem;}
+  .ed-word-grid{grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;}
+}
+</style>
+</head>
+<body>
+<div id="toast"></div>
+<div id="drag-ghost"></div>
+<input type="file" id="t-quick-edit" accept="image/*" style="display:none;" onchange="handleTeacherQuickEdit(event)">
+<input type="file" id="aac-file-input" accept="image/*,video/*" style="display:none;" onchange="handleAacFileSelect(event)">
+<input type="file" id="word-file-input" accept="image/*,video/*" style="display:none;" onchange="handleWordFileSelect(event)">
+<input type="file" id="cat-img-file" accept="image/*" style="display:none;" onchange="handleCatImgFile(event)">
+<input type="file" id="import-aac-cfg" accept=".json" style="display:none;" onchange="importAacConfig(event)">
+
+<!-- ══════════════════════════════════════════════════ -->
+<!-- EDITOR AAC (pantalla completa)                    -->
+<!-- ══════════════════════════════════════════════════ -->
+<div class="editor-ov" id="editorOv">
+  <div class="ed-header">
+    <div class="ed-title"><i data-lucide="settings-2" style="width:18px;color:var(--aac-accent)"></i> Configurar Comunicador</div>
+    <div class="ed-acts">
+      <button onclick="exportAacConfig()" class="a-btn" style="font-size:.78rem;padding:.45rem .8rem;"><i data-lucide="download" style="width:13px;"></i> Exportar</button>
+      <button onclick="document.getElementById('import-aac-cfg').click()" class="a-btn" style="font-size:.78rem;padding:.45rem .8rem;"><i data-lucide="upload" style="width:13px;"></i> Importar</button>
+      <button onclick="closeEditor()" class="a-btn ap"><i data-lucide="check" style="width:14px;"></i> Listo</button>
+    </div>
+  </div>
+
+  <!-- Nueva categoría -->
+  <div class="ed-new-cat">
+    <h4><i data-lucide="folder-plus" style="width:15px;color:var(--aac-accent)"></i> Nueva Categoría</h4>
+    <div style="display:flex;gap:.75rem;align-items:flex-start;flex-wrap:wrap;">
+      <!-- Picto de categoría -->
+      <div>
+        <p style="font-size:.75rem;color:var(--aac-muted);margin:0 0 .4rem;">Pictograma</p>
+        <div class="cat-picto-preview" id="newCatPictoPreview" onclick="openCatPictoSearch('new')" title="Toca para buscar pictograma">
+          <div class="placeholder"><i data-lucide="image-plus" style="width:20px;color:var(--aac-muted);display:block;margin:0 auto .25rem;"></i>Buscar</div>
+        </div>
+      </div>
+      <div style="flex:1;min-width:160px;display:flex;flex-direction:column;gap:.5rem;">
+        <input class="a-inp" type="text" id="newCatName" placeholder="Nombre de la categoría..." style="margin:0;">
+        <div style="display:flex;gap:.5rem;align-items:center;">
+          <label style="font-size:.75rem;color:var(--aac-muted);white-space:nowrap;">Color botón:</label>
+          <input type="color" id="newCatColor" value="#4f6ef7" style="width:40px;height:36px;border:none;border-radius:8px;cursor:pointer;padding:2px;background:none;">
+        </div>
+        <button onclick="addAacCategory()" class="a-btn ap" style="justify-content:center;"><i data-lucide="plus" style="width:14px;"></i> Añadir Categoría</button>
+      </div>
+    </div>
+  </div>
+
+  <p style="font-size:.78rem;color:var(--aac-muted);margin:0 0 .75rem;">Toca una categoría para ver y editar sus palabras. Usa las flechas para reordenar.</p>
+  <div id="edCatList" class="ed-cat-list"></div>
+</div>
+
+<!-- Modal buscar pictograma para categoría -->
+<div class="dlg-ov" id="catPictoModal">
+  <div class="dlg-card">
+    <h3><i data-lucide="search" style="width:16px;color:var(--aac-accent)"></i> Imagen de Categoría</h3>
+    <div style="display:flex;gap:.4rem;margin-bottom:.5rem;">
+      <input class="a-inp" type="text" id="catPictoSearchInput" placeholder="Buscar en ARASAAC..." style="margin:0;flex:1;" onkeyup="if(event.key==='Enter')searchCatPicto()">
+      <button onclick="searchCatPicto()" class="a-btn ap" style="flex-shrink:0;">Buscar</button>
+    </div>
+    <div style="display:flex;gap:.4rem;margin-bottom:.5rem;">
+      <button onclick="document.getElementById('cat-img-file').click()" class="a-btn" style="font-size:.78rem;"><i data-lucide="upload" style="width:12px;"></i> Desde archivo</button>
+    </div>
+    <div class="aac-sr-grid" id="catPictoResults"><div style="grid-column:1/-1;text-align:center;padding:1rem;color:var(--aac-muted);font-size:.78rem;">Busca para ver opciones.</div></div>
+    <div style="display:flex;gap:.5rem;justify-content:flex-end;margin-top:1rem;border-top:1px solid var(--aac-border);padding-top:.875rem;">
+      <button onclick="closeCatPictoModal()" class="a-btn">Cancelar</button>
+      <button onclick="applyCatPicto()" class="a-btn ap"><i data-lucide="save" style="width:13px;"></i> Aplicar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal editar categoría -->
+<div class="dlg-ov" id="editCatDlg">
+  <div class="dlg-card">
+    <h3><i data-lucide="pencil" style="width:16px;color:var(--aac-accent)"></i> Editar Categoría</h3>
+    <div style="display:flex;gap:.75rem;align-items:flex-start;flex-wrap:wrap;margin-bottom:.75rem;">
+      <div>
+        <p style="font-size:.75rem;color:var(--aac-muted);margin:0 0 .4rem;">Pictograma</p>
+        <div class="cat-picto-preview" id="editCatPictoPreview" onclick="openCatPictoSearch('edit')" title="Toca para cambiar">
+          <div class="placeholder"><i data-lucide="image" style="width:18px;color:var(--aac-muted);display:block;margin:0 auto;"></i></div>
+        </div>
+      </div>
+      <div style="flex:1;min-width:160px;display:flex;flex-direction:column;gap:.5rem;">
+        <input class="a-inp" type="text" id="editCatName" placeholder="Nombre..." style="margin:0;">
+        <div style="display:flex;gap:.5rem;align-items:center;">
+          <label style="font-size:.75rem;color:var(--aac-muted);white-space:nowrap;">Color botón:</label>
+          <input type="color" id="editCatColor" style="width:40px;height:36px;border:none;border-radius:8px;cursor:pointer;padding:2px;background:none;">
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;gap:.5rem;justify-content:flex-end;border-top:1px solid var(--aac-border);padding-top:.875rem;">
+      <button onclick="closeEditCatDlg()" class="a-btn">Cancelar</button>
+      <button onclick="saveEditCat()" class="a-btn ap"><i data-lucide="save" style="width:13px;"></i> Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal añadir/editar palabra -->
+<div class="dlg-ov" id="wordDlg">
+  <div class="dlg-card">
+    <h3><i data-lucide="image-plus" style="width:16px;color:var(--aac-accent)"></i> Añadir Palabra</h3>
+    <input class="a-inp" type="text" id="wLabel" placeholder="Palabra / etiqueta..." oninput="debounceWordSearch(this.value)">
+    <div class="mtabs" style="margin-bottom:.5rem;">
+      <button onclick="setWMode('arasaac')" id="wm-arasaac" class="mtab on" style="flex:1;">🔍 ARASAAC</button>
+      <button onclick="setWMode('file')" id="wm-file" class="mtab" style="flex:1;">📁 Archivo</button>
+      <button onclick="setWMode('url')" id="wm-url" class="mtab" style="flex:1;">🌐 URL</button>
+    </div>
+    <div id="w-arasaac">
+      <div style="display:flex;gap:.4rem;">
+        <input class="a-inp" type="text" id="wSearchQ" placeholder="Buscar en ARASAAC..." style="margin:0;flex:1;" onkeyup="if(event.key==='Enter')searchWordPicto()">
+        <button onclick="searchWordPicto()" class="a-btn ap" style="flex-shrink:0;">Buscar</button>
+      </div>
+      <div class="aac-sr-grid" id="wResults"><div style="grid-column:1/-1;text-align:center;padding:1rem;color:var(--aac-muted);font-size:.78rem;">Escribe la palabra arriba para buscar automáticamente.</div></div>
+    </div>
+    <div id="w-file" style="display:none;">
+      <button onclick="document.getElementById('word-file-input').click()" class="a-btn" style="width:100%;justify-content:center;"><i data-lucide="upload" style="width:14px;"></i> Seleccionar imagen / vídeo</button>
+      <span id="wFileName" style="font-size:.72rem;color:var(--aac-muted);display:block;margin-top:.4rem;"></span>
+    </div>
+    <div id="w-url" style="display:none;">
+      <input class="a-inp" type="text" id="wUrlInput" placeholder="https://..." style="margin-top:.5rem;">
+    </div>
+    <div style="display:flex;gap:.5rem;justify-content:flex-end;margin-top:1.25rem;border-top:1px solid var(--aac-border);padding-top:1rem;">
+      <button onclick="closeWordDlg()" class="a-btn">Cancelar</button>
+      <button onclick="saveWord()" class="a-btn ap"><i data-lucide="save" style="width:13px;"></i> Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal ARASAAC tablero profesor -->
+<div class="modal-ov" id="teacherSearchModal">
+  <div class="modal-card">
+    <h3 style="margin:0 0 .5rem;display:flex;align-items:center;gap:.5rem;font-size:1rem;"><i data-lucide="search" style="width:16px;color:var(--primary)"></i> Buscar pictograma en ARASAAC</h3>
+    <p style="font-size:.8rem;color:var(--slate-500);margin:0 0 .75rem;">Escribe otra palabra para reemplazar la imagen actual.</p>
+    <div style="display:flex;gap:.5rem;">
+      <input type="text" id="teacherSearchInput" placeholder="Ej. perro, correr..." style="flex:1;" onkeyup="if(event.key==='Enter')runTeacherSearch()">
+      <button onclick="runTeacherSearch()" class="btn btn-p" style="flex:0 0 auto;padding:.75rem 1rem;">Buscar</button>
+    </div>
+    <div id="teacherSearchResults" class="sr-grid"></div>
+    <div style="display:flex;gap:.5rem;justify-content:flex-end;margin-top:1.25rem;border-top:1px solid var(--slate-100);padding-top:1rem;">
+      <button onclick="closeTeacherSearch()" class="btn btn-g">Cancelar</button>
+      <button onclick="applyTeacherSearch()" class="btn" style="background:var(--success);color:#fff;flex:0;">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════ -->
+<div class="app-wrap">
+
+<!-- ══ ZONA PROFESOR ══ -->
+<div class="t-zone">
+  <div class="t-header">
+    <div class="z-label"><div class="dot"></div>Tablero del Profesor</div>
+    <img src="https://i.postimg.cc/7P2BW8b5/logo_Nogales_PT.png" alt="NogalesPT" class="brand-logo">
+    <div style="display:flex;gap:.4rem;align-items:center;">
+      <button onclick="togglePanel('langPanel')" class="ic-btn" title="Idioma"><i data-lucide="globe" style="width:16px;height:16px;"></i></button>
+      <button onclick="togglePanel('uploadPanel')" class="ic-btn" title="Recursos personalizados"><i data-lucide="image-plus" style="width:16px;height:16px;"></i></button>
+      <button onclick="toggleWakeWord()" id="btnWake" class="ic-btn" title='Escucha activa — di "Oye Noga" para activar el micrófono'><i data-lucide="ear" style="width:16px;height:16px;"></i></button>
+      <button onclick="readAll()" id="btnReadAll" class="ic-btn" title="Reproducir todo"><i data-lucide="play" style="width:16px;height:16px;"></i></button>
+      <button onclick="stopRead()" id="btnStop" style="display:none;" class="ic-btn"><i data-lucide="square" style="width:16px;height:16px;"></i></button>
+      <button onclick="resetTeacher()" class="ic-btn" title="Borrar tablero"><i data-lucide="trash-2" style="width:16px;height:16px;"></i></button>
+    </div>
+  </div>
+
+  <!-- Indicador escucha activa -->
+  <div id="wakeBar" style="display:none;align-items:center;gap:.75rem;background:#0f172a;border:1.5px solid #3b82f6;border-radius:var(--radius);padding:.6rem 1rem;margin-bottom:1rem;animation:fi .3s ease;">
+    <div id="wakeOrb" style="width:10px;height:10px;border-radius:50%;background:#3b82f6;flex-shrink:0;animation:wakeIdle 2.5s ease-in-out infinite;"></div>
+    <span id="wakeTxt" style="font-size:.78rem;font-weight:700;color:#93c5fd;flex:1;">Escucha activa — di <strong style="color:#fff;">"Oye Noga"</strong> o <strong style="color:#fff;">"Oye Nova"</strong> para dictar</span>
+    <button onclick="toggleWakeWord()" style="background:none;border:none;color:#475569;cursor:pointer;display:flex;align-items:center;padding:.2rem;"><i data-lucide="x" style="width:14px;height:14px;"></i></button>
+  </div>
+
+  <!-- Panel Idioma Profesor -->
+  <div id="langPanel" class="panel">
+    <div class="ph"><h3><i data-lucide="globe" style="width:15px;color:var(--primary)"></i> Idioma / Traducción</h3><button onclick="togglePanel('langPanel')" class="ic-btn-flat"><i data-lucide="x" style="width:15px;"></i></button></div>
+    <p style="font-size:.82rem;color:var(--slate-500);margin:0 0 .875rem;">Las palabras clave mostrarán su traducción y se leerán en este idioma al tocarlas.</p>
+    <select id="tLangSel" onchange="changeTLang(this.value)">
+      <option value="none">Ninguno (Solo Español)</option>
+      <option value="de">Alemán</option><option value="ar">Árabe</option><option value="zh">Chino</option>
+      <option value="fr">Francés</option><option value="en">Inglés</option><option value="it">Italiano</option>
+      <option value="pt">Portugués</option><option value="uk">Ucraniano</option>
+    </select>
+  </div>
+
+  <!-- Panel Subida Profesor -->
+  <div id="uploadPanel" class="panel">
+    <div class="ph"><h3><i data-lucide="image-plus" style="width:15px;color:var(--primary)"></i> Recursos Personalizados (Tablero)</h3><button onclick="togglePanel('uploadPanel')" class="ic-btn-flat"><i data-lucide="x" style="width:15px;"></i></button></div>
+    <p style="font-size:.82rem;color:var(--slate-500);margin:0 0 .875rem;">Sube tu propia imagen para una palabra. Tendrá prioridad sobre ARASAAC.</p>
+    <div style="display:grid;grid-template-columns:1fr auto;gap:.75rem;margin-bottom:.75rem;align-items:start;">
+      <input type="text" id="tUpWord" placeholder="Palabra clave...">
+      <div style="display:flex;gap:.25rem;">
+        <button onclick="setTUpMode('file')" id="tMF" class="btn btn-p" style="padding:.6rem .75rem;font-size:.8rem;flex:0 0 auto;">📁</button>
+        <button onclick="setTUpMode('url')" id="tMU" class="btn btn-g" style="padding:.6rem .75rem;font-size:.8rem;flex:0 0 auto;">🌐</button>
+      </div>
+    </div>
+    <div id="tFileBox" style="margin-bottom:.75rem;"><input type="file" id="tFile" accept="image/*" style="width:100%;border:none;padding:0;background:transparent;"></div>
+    <div id="tUrlBox" style="display:none;margin-bottom:.75rem;"><input type="text" id="tUrl" placeholder="https://..."></div>
+    <button onclick="saveTUp()" class="btn btn-p" style="width:100%;flex:unset;"><i data-lucide="save" style="width:15px;"></i> Guardar Recurso</button>
+    <div id="tUpList" style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:1rem;padding-top:.875rem;border-top:1px solid var(--slate-200);min-height:20px;"></div>
+  </div>
+
+  <div class="input-card">
+    <textarea id="mainInput" placeholder="Escribe aquí la frase del tablero..."></textarea>
+    <div class="action-bar">
+      <button onclick="toggleDictation()" id="btnMic" class="btn btn-g" style="flex:0 0 auto;"><i data-lucide="mic" style="width:15px;height:15px;"></i></button>
+      <button onclick="startConversion()" class="btn btn-p"><i data-lucide="layout-grid" style="width:15px;height:15px;"></i> Generar Tablero</button>
+    </div>
+  </div>
+
+  <div id="loading-t" style="display:none;text-align:center;padding:1.5rem;flex-direction:column;align-items:center;gap:.75rem;">
+    <i data-lucide="loader-2" class="spin" style="width:32px;height:32px;color:var(--primary);"></i>
+    <span id="loading-t-txt" style="font-weight:700;color:var(--slate-500);font-size:.9rem;">Cargando...</span>
+  </div>
+  <div id="outputContainer" style="display:none;">
+    <div class="p-grid fade-in" id="pictoGrid"></div>
+  </div>
+</div>
+
+<div class="divider"><div class="div-line"></div><div class="div-lbl">↑ Profesor · Alumno ↓</div><div class="div-line"></div></div>
+
+<!-- ══ ZONA ALUMNO ══ -->
+<div class="s-zone" id="sZone">
+  <div class="s-header">
+    <div class="z-label-aac"><div class="dot"></div>Comunicador del Alumno</div>
+    <div class="aac-ic-acts">
+      <button onclick="toggleAacPanel('aacLangPanel')" class="aac-ic" title="Idioma"><i data-lucide="globe" style="width:15px;height:15px;"></i></button>
+      <button onclick="toggleAacPanel('aacUploadPanel')" class="aac-ic" title="Añadir pictograma propio"><i data-lucide="image-plus" style="width:15px;height:15px;"></i></button>
+      <button onclick="openEditor()" class="aac-ic" title="Configurar comunicador" style="border-color:var(--aac-accent);color:var(--aac-accent);"><i data-lucide="settings-2" style="width:15px;height:15px;"></i></button>
+      <button onclick="toggleFullscreen()" id="btnFull" class="aac-ic" title="Pantalla completa alumno" style="border-color:var(--aac-green);color:var(--aac-green);"><i data-lucide="maximize-2" style="width:15px;height:15px;"></i></button>
+    </div>
+  </div>
+
+  <!-- Panel Idioma AAC -->
+  <div id="aacLangPanel" class="aac-panel">
+    <div class="aph"><h3><i data-lucide="globe" style="width:14px;color:var(--aac-accent)"></i> Idioma del Comunicador</h3><button onclick="toggleAacPanel('aacLangPanel')" style="background:none;border:none;color:var(--aac-muted);cursor:pointer;display:flex;"><i data-lucide="x" style="width:14px;"></i></button></div>
+    <p style="font-size:.78rem;color:var(--aac-muted);margin:0 0 .75rem;">Los pictogramas mostrarán la traducción y se leerán en ambos idiomas.</p>
+    <select class="a-sel" id="aacLangSel" onchange="changeAacLang(this.value)">
+      <option value="none">Ninguno (Solo Español)</option>
+      <option value="de">Alemán</option><option value="ar">Árabe</option><option value="zh">Chino</option>
+      <option value="fr">Francés</option><option value="en">Inglés</option><option value="it">Italiano</option>
+      <option value="pt">Portugués</option><option value="uk">Ucraniano</option>
+    </select>
+  </div>
+
+  <!-- Panel Subida AAC -->
+  <div id="aacUploadPanel" class="aac-panel">
+    <div class="aph"><h3><i data-lucide="image-plus" style="width:14px;color:var(--aac-accent)"></i> Añadir Pictograma al Comunicador</h3><button onclick="toggleAacPanel('aacUploadPanel')" style="background:none;border:none;color:var(--aac-muted);cursor:pointer;display:flex;"><i data-lucide="x" style="width:14px;"></i></button></div>
+    <p style="font-size:.78rem;color:var(--aac-muted);margin:0 0 .875rem;">Aparecerá en la categoría <strong style="color:var(--aac-text)">⭐ Personalizados</strong>.</p>
+    <input class="a-inp" type="text" id="aacUpWord" placeholder="Palabra clave...">
+    <div class="mtabs">
+      <button onclick="setAacMode('file')" id="aacMF" class="mtab on">📁 Archivo</button>
+      <button onclick="setAacMode('url')" id="aacMU" class="mtab">🌐 URL</button>
+      <button onclick="setAacMode('camera')" id="aacMC" class="mtab">📷 GIF</button>
+    </div>
+    <div id="aacFileBox"><button onclick="document.getElementById('aac-file-input').click()" class="a-btn" style="width:100%;justify-content:center;"><i data-lucide="upload" style="width:14px;"></i> Seleccionar archivo</button><span id="aacFName" style="font-size:.72rem;color:var(--aac-muted);display:block;margin-top:.4rem;"></span></div>
+    <div id="aacUrlBox" style="display:none;"><input class="a-inp" type="text" id="aacUrlIn" placeholder="https://..."></div>
+    <div id="aacCamBox" style="display:none;flex-direction:column;align-items:center;gap:.5rem;margin-top:.5rem;"><video id="aacVid" autoplay playsinline muted style="width:100%;max-width:280px;border-radius:.75rem;background:black;"></video><button onclick="startAacRec()" id="aacRecBtn" class="a-btn ap" style="width:100%;justify-content:center;"><i data-lucide="circle-dot" style="width:14px;"></i> Grabar 3s</button></div>
+    <button onclick="saveAacPicto()" class="a-btn ap" style="width:100%;justify-content:center;margin-top:.875rem;"><i data-lucide="save" style="width:14px;"></i> Guardar en Comunicador</button>
+    <div class="chip-list" id="aacChipList"></div>
+  </div>
+
+  <!-- Barra de respuesta -->
+  <div class="out-bar" id="outBar">
+    <span class="out-empty" id="outEmpty">Toca los pictogramas para construir tu respuesta...</span>
+    <div class="bar-acts">
+      <button class="s-btn danger" onclick="aacUndo()" title="Borrar última"><i data-lucide="delete" style="width:13px;height:13px;"></i></button>
+      <button class="s-btn danger" onclick="aacClear()" title="Borrar todo"><i data-lucide="x" style="width:13px;height:13px;"></i></button>
+      <button class="s-btn speak" onclick="aacSpeak()"><i data-lucide="volume-2" style="width:13px;height:13px;"></i> Hablar</button>
+    </div>
+  </div>
+
+  <div id="aacNavRow" style="display:flex;gap:.4rem;align-items:center;margin-bottom:.75rem;flex-wrap:wrap;">
+    <div class="aac-nav" id="aacNav"></div>
+    <button class="back-pill" id="backPill" onclick="aacGoBack()"><i data-lucide="arrow-left" style="width:12px;height:12px;"></i> Volver</button>
+  </div>
+
+  <div id="loading-aac" style="display:none;color:var(--aac-muted);font-size:.82rem;padding:1.5rem;text-align:center;">
+    <i data-lucide="loader-2" class="spin" style="width:24px;height:24px;display:inline-block;margin-bottom:.4rem;"></i><br>Buscando pictogramas...
+  </div>
+  <div class="aac-grid fade-in" id="aacGrid"></div>
+</div>
+
+</div><!-- /app-wrap -->
+
+<script>
+// ════════════════════════════════════════════════
+//  INDEXEDDB
+// ════════════════════════════════════════════════
+const DB_NAME='NogalesBidir_DB', ST='teacher_pictos', SA='aac_pictos', SC='aac_cats';
+let db;
+function initDB(){
+  return new Promise((res,rej)=>{
+    const r=indexedDB.open(DB_NAME,4);
+    r.onupgradeneeded=e=>{
+      const d=e.target.result;
+      if(!d.objectStoreNames.contains(ST)) d.createObjectStore(ST,{keyPath:'word'});
+      if(!d.objectStoreNames.contains(SA)) d.createObjectStore(SA,{keyPath:'word'});
+      if(!d.objectStoreNames.contains(SC)) d.createObjectStore(SC,{keyPath:'id'});
+    };
+    r.onsuccess=e=>{db=e.target.result;res(db);};
+    r.onerror=rej;
+  });
+}
+const dbPut=(store,obj)=>db.transaction(store,'readwrite').objectStore(store).put(obj);
+const dbDel=(store,key)=>db.transaction(store,'readwrite').objectStore(store).delete(key);
+const dbAll=store=>new Promise(res=>{const r=db.transaction(store,'readonly').objectStore(store).getAll();r.onsuccess=()=>res(r.result);});
+const dbClear=store=>db.transaction(store,'readwrite').objectStore(store).clear();
+
+// ════════════════════════════════════════════════
+//  ESTADO
+// ════════════════════════════════════════════════
+let tLang=localStorage.getItem('t_lang')||'none';
+let aacLang=localStorage.getItem('aac_lang')||'none';
+let tPictos={}, aacPictos={};
+let tokens=[], isReading=false, convId=0;
+let voiceSpeed=1.0;
+const memCache={}, transCache={};
+// Drag tablero
+let dragIdx=null, touchSrc=null, isTouchDrag=false, touchX0=0, touchY0=0;
+// Quick edit tablero
+let tEditWord=null, tEditIdx=null, tUpMode='file';
+// Búsqueda modal tablero
+let teacherSearchIdx=null, teacherSearchSel=null;
+// AAC
+let aacOutput=[], aacCurCat=null, aacCatCache={};
+let aacUpMode='file', aacCaptB64=null, aacStream=null, aacMR, aacChunks=[];
+// Modo filtro (fullscreen)
+let allItemsCache=null;
+let activeFilterCats=new Set(['all']);
+// Editor
+let customCats=[];   // [{id,name,color,imageUrl,videoSrc,words:[{label,images:[],currentIndex,imageUrl,videoSrc}]}]
+let edExpanded=null;
+let editCatId=null;
+let wordDlgCat=null, wMode='arasaac', wSelUrl=null, wCapB64=null, wSearchDebounce=null;
+let catPictoTarget=null,  catPictoSel=null, catPictoFileB64=null;
+let isFull=false;
+const LANG_LOC={ar:'ar-SA',en:'en-US',fr:'fr-FR',uk:'uk-UA',zh:'zh-CN',pt:'pt-PT',it:'it-IT',de:'de-DE'};
+
+// Categorías predeterminadas
+const DEF_CATS=[
+  {id:'yo',    name:'Yo / Personas',emoji:'👤',color:'#f97316',defWords:['yo','tú','él','ella','nosotros','mamá','papá','profe','amigo','familia']},
+  {id:'sent',  name:'Sentimientos', emoji:'💛',color:'#eab308',defWords:['bien','mal','feliz','triste','enfadado','cansado','miedo','dolor','sorpresa','amor']},
+  {id:'lugar', name:'Lugares',      emoji:'📍',color:'#3b82f6',defWords:['casa','colegio','clase','patio','parque','cine','baño','cocina','tienda','hospital']},
+  {id:'acc',   name:'Acciones',     emoji:'⚡',color:'#22c55e',defWords:['quiero','comer','beber','ir','jugar','dormir','ayuda','espera','parar','dar']},
+  {id:'com',   name:'Comida',       emoji:'🍎',color:'#ef4444',defWords:['agua','leche','pan','fruta','bocadillo','galleta','zumo','pasta','arroz','yogur']},
+  {id:'obj',   name:'Objetos',      emoji:'🎒',color:'#8b5cf6',defWords:['libro','lápiz','mesa','silla','tablet','pelota','mochila','tijeras','pegamento','papel']},
+  {id:'tiem',  name:'Tiempo',       emoji:'🕐',color:'#64748b',defWords:['ahora','después','antes','hoy','mañana','pronto','espera','nunca','siempre','ayer']},
+  {id:'soc',   name:'Social',       emoji:'👋',color:'#a855f7',defWords:['hola','gracias','por favor','perdón','sí','no','ayuda','bien','adiós','vale']},
+];
+
+// ════════════════════════════════════════════════
+//  UTILS
+// ════════════════════════════════════════════════
+function toast(msg){const t=document.getElementById('toast');t.innerText=msg;t.style.display='block';clearTimeout(window._tt);window._tt=setTimeout(()=>t.style.display='none',3500);}
+function setTLoad(s,txt='Cargando...'){document.getElementById('loading-t').style.display=s?'flex':'none';document.getElementById('loading-t-txt').innerText=txt;}
+function setALoad(s){document.getElementById('loading-aac').style.display=s?'block':'none';document.getElementById('aacGrid').style.display=s?'none':'grid';}
+function clean(w){return w.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z\s]/g,'').replace(/\s+/g,' ').trim();}
+function compressImg(b64,mW=300,mH=300){
+  return new Promise(res=>{
+    const img=new Image();img.src=b64;
+    img.onload=()=>{
+      let w=img.width,h=img.height;
+      if(w>h){if(w>mW){h*=mW/w;w=mW;}}else{if(h>mH){w*=mH/h;h=mH;}}
+      const c=document.createElement('canvas');c.width=w;c.height=h;
+      c.getContext('2d').drawImage(img,0,0,w,h);res(c.toDataURL('image/jpeg',.75));
+    };
+  });
+}
+function togglePanel(id){
+  const p=document.getElementById(id);const was=p.classList.contains('open');
+  ['langPanel','uploadPanel'].forEach(x=>document.getElementById(x).classList.remove('open'));
+  if(!was){p.classList.add('open');lucide.createIcons();}
+}
+function toggleAacPanel(id){
+  const p=document.getElementById(id);const was=p.classList.contains('open');
+  ['aacLangPanel','aacUploadPanel'].forEach(x=>document.getElementById(x).classList.remove('open'));
+  if(!was){p.classList.add('open');lucide.createIcons();}
+}
+
+// ════════════════════════════════════════════════
+//  TRADUCCIÓN
+// ════════════════════════════════════════════════
+async function trans(word,lang){
+  if(!lang||lang==='none') return '';
+  const k=word+'_'+lang;
+  if(transCache[k]!==undefined) return transCache[k];
+  try{const r=await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=es&tl=${lang}&dt=t&q=${encodeURIComponent(word)}`);const d=await r.json();const v=d[0][0][0];transCache[k]=v;return v;}
+  catch(e){transCache[k]='';return '';}
+}
+function changeTLang(l){tLang=l;localStorage.setItem('t_lang',l);if(document.getElementById('mainInput').value.trim()&&document.getElementById('outputContainer').style.display!=='none')startConversion();}
+function changeAacLang(l){aacLang=l;localStorage.setItem('aac_lang',l);aacCatCache={};if(aacCurCat)openAacCat(aacCurCat);else renderAacRoot();}
+
+// ════════════════════════════════════════════════
+//  ARASAAC helpers
+// ════════════════════════════════════════════════
+function infinitives(word){
+  const inf=new Set();
+  const irr={'soy':'ser','eres':'ser','es':'ser','somos':'ser','son':'ser','voy':'ir','va':'ir','vamos':'ir','van':'ir','estoy':'estar','esta':'estar','estan':'estar','tengo':'tener','tiene':'tener','tienen':'tener','hago':'hacer','hace':'hacer','quiero':'querer','quiere':'querer','quieren':'querer','puedo':'poder','puede':'poder','pueden':'poder','juego':'jugar','juega':'jugar','como':'comer','come':'comer','bebo':'beber','bebe':'beber','duermo':'dormir','duerme':'dormir'};
+  if(irr[word]) inf.add(irr[word]);
+  const sf=[{m:/(amos|ando|ado|aron|aste)$/,r:['ar']},{m:/(emos|iendo|ido|ieron|iste)$/,r:['er','ir']},{m:/(as|a|an|aba|aban)$/,r:['ar']},{m:/(es|e|en|ia|ian)$/,r:['er','ir']},{m:/(o)$/,r:['ar','er','ir']}];
+  for(const s of sf){if(s.m.test(word)){const root=word.replace(s.m,'');s.r.forEach(r=>inf.add(root+r));}}
+  return Array.from(inf);
+}
+async function fetchArasaac(term){
+  if(memCache[term]!==undefined) return memCache[term];
+  try{const r=await fetch(`https://api.arasaac.org/api/pictograms/es/search/${term}`);const d=await r.json();if(d&&d.length>0){const u=d.slice(0,6).map(i=>`https://static.arasaac.org/pictograms/${i._id}/${i._id}_300.png`);memCache[term]=u;return u;}}catch(e){}
+  memCache[term]=[];return [];
+}
+async function fetchBest(word){
+  const c=clean(word);
+  if(tPictos[c]) return [tPictos[c]];
+  let imgs=await fetchArasaac(c);if(imgs.length) return imgs;
+  for(const inf of infinitives(c)){imgs=await fetchArasaac(inf);if(imgs.length){memCache[c]=imgs;return imgs;}}
+  return [];
+}
+function borderColor(word){
+  const w=clean(word);
+  const org=['yo','tu','el','ella','nosotros','nosotras','vosotros','vosotras','ellos','ellas','me','te','se','nos','mi','mama','papa','profesor','profesora','amigo','amiga','hermano','hermana','familia','persona'];
+  const pur=['hola','adios','gracias','favor','perdon','si','no','bien','mal','vale','guay'];
+  const blu=['grande','pequeno','bueno','malo','bonito','feo','alto','bajo','feliz','triste','contento','enfadado','cansado','rapido','lento','frio','caliente','nuevo','viejo','rojo','azul','verde','amarillo','naranja','morado','rosa','blanco','negro','marron','gris'];
+  const msc=['y','o','pero','de','a','en','con','por','para','sin','sobre','hasta','desde','que','el','la','los','las','un','una','al','del'];
+  if(org.includes(w)) return '#f97316';
+  if(pur.includes(w)) return '#a855f7';
+  if(blu.includes(w)) return '#3b82f6';
+  if(msc.includes(w)) return 'var(--slate-200)';
+  if(/(ar|er|ir)$/.test(w)&&!['mar','sol','amor','dolor','calor','color','flor','mujer','motor','lugar','hogar','azucar'].includes(w)) return '#22c55e';
+  return '#eab308';
+}
+
+// ════════════════════════════════════════════════
+//  VOZ
+// ════════════════════════════════════════════════
+window._utts=[];
+if(typeof speechSynthesis!=='undefined'&&speechSynthesis.onvoiceschanged!==undefined) speechSynthesis.onvoiceschanged=()=>speechSynthesis.getVoices();
+function speakTxt(txt,lang,rate){
+  return new Promise(res=>{
+    const ut=new SpeechSynthesisUtterance(txt);ut.lang=lang;ut.rate=rate||voiceSpeed;
+    const voices=window.speechSynthesis.getVoices();const v=voices.find(v=>v.lang.startsWith(lang.split('-')[0]));if(v)ut.voice=v;
+    let ok=false;const fin=()=>{if(!ok){ok=true;res();}};ut.onend=fin;ut.onerror=fin;setTimeout(fin,5000);
+    window._utts.push(ut);window.speechSynthesis.speak(ut);
+  });
+}
+async function playWord(word,card,tw,tl){
+  if(window.speechSynthesis.speaking) window.speechSynthesis.cancel();
+  if(card) card.classList.add('p-active');
+  await speakTxt(word.toLowerCase()==='y'?'i':word,'es-ES',voiceSpeed);
+  if(tw&&tl&&tl!=='none') await speakTxt(tw,LANG_LOC[tl]||'es-ES',voiceSpeed);
+  if(card) card.classList.remove('p-active');
+}
+
+// ════════════════════════════════════════════════
+//  TABLERO PROFESOR
+// ════════════════════════════════════════════════
+function mediaHtml(src,alt,bc){
+  if(!src) return `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:${bc}20;border-radius:.5rem;"><span style="font-size:.85rem;font-weight:900;color:${bc};text-align:center;padding:.3rem;line-height:1.1;">${alt.toUpperCase()}</span></div>`;
+  if(src.startsWith('data:video')) return `<video src="${src}" autoplay loop muted playsinline style="max-width:100%;max-height:100%;object-fit:contain;pointer-events:none;display:block;margin:auto;"></video>`;
+  return `<img src="${src}" crossorigin="anonymous" alt="${alt}" style="max-width:100%;max-height:100%;object-fit:contain;pointer-events:none;display:block;margin:auto;">`;
+}
+
+async function fetchTokens(text){
+  const rawWords=text.trim().split(/\s+/).filter(w=>w.length);
+  const result=[];let netErr=false;
+  let i=0;
+  while(i<rawWords.length){
+    setTLoad(true,`Buscando palabras... (${i+1}/${rawWords.length})`);
+
+    // ── Intentar primero si hay una frase compuesta guardada (de más larga a más corta)
+    let matched=false;
+    for(let len=rawWords.length-i;len>1;len--){
+      const phrase=rawWords.slice(i,i+len).join(' ');
+      const cPhrase=clean(phrase);
+      if(tPictos[cPhrase]){
+        // Frase compuesta guardada — emitir como un solo token
+        const bc=borderColor(cPhrase);
+        let tw=null;
+        const translatable=['#22c55e','#eab308','#3b82f6'].includes(bc);
+        if(tLang!=='none'&&translatable) tw=await trans(phrase,tLang);
+        result.push({word:phrase,images:[tPictos[cPhrase]],ci:0,bc,tw});
+        i+=len;matched=true;break;
+      }
+    }
+    if(matched) continue;
+
+    // ── Palabra individual
+    const word=rawWords[i];const c=clean(word);
+    let images=[];
+    if(tPictos[c]) images=[tPictos[c]];
+    if(!images.length){
+      if(memCache[c]&&memCache[c].length) images=memCache[c];
+      else{
+        try{
+          let r=await fetch(`https://api.arasaac.org/api/pictograms/es/search/${c}`);let d=await r.json();
+          if(d&&d.length){images=d.slice(0,5).map(x=>`https://static.arasaac.org/pictograms/${x._id}/${x._id}_300.png`);memCache[c]=images;}
+          else{for(const inf of infinitives(c)){try{let r2=await fetch(`https://api.arasaac.org/api/pictograms/es/search/${inf}`);let d2=await r2.json();if(d2&&d2.length){images=d2.slice(0,5).map(x=>`https://static.arasaac.org/pictograms/${x._id}/${x._id}_300.png`);memCache[c]=images;break;}}catch(e){}}}
+        }catch(e){if(!netErr){toast('Sin conexión — algunos pictos no cargaron');netErr=true;}}
+      }
+    }
+    const bc=borderColor(word);
+    const translatable=['#22c55e','#eab308','#3b82f6'].includes(bc);
+    let tw=null;if(tLang!=='none'&&translatable) tw=await trans(word,tLang);
+    result.push({word,images,ci:0,bc,tw});
+    i++;
+  }
+  return result;
+}
+
+async function startConversion(){
+  const id=++convId;const text=document.getElementById('mainInput').value;
+  if(!text.trim()){document.getElementById('outputContainer').style.display='none';return;}
+  setTLoad(true,'Iniciando...');document.getElementById('outputContainer').style.display='none';
+  const tkns=await fetchTokens(text);if(id!==convId) return;
+  tokens=tkns;document.getElementById('pictoGrid').innerHTML='';document.getElementById('outputContainer').style.display='block';
+  tokens.forEach((t,i)=>createTeacherCard(t,i));setTLoad(false);lucide.createIcons();
+}
+
+function createTeacherCard(token,index){
+  const card=document.createElement('div');
+  card.className='p-card';card.id=`tc-${index}`;card.style.borderColor=token.bc;card.draggable=true;
+  const multi=token.images.length>1;
+  const show=(token.isMerged||token.isMod);
+  const tA=token.tw?`'${token.tw.replace(/'/g,"\\'")}' `:'null';
+  const lA=tLang!=='none'?`'${tLang}'`:'null';
+  card.innerHTML=`
+    <div class="p-img" onclick="playWord('${token.word.replace(/'/g,"\\'")}',this.parentElement,${tA},${lA})">
+      <button class="save-btn${show?' show':''}" id="sb-${index}" onclick="saveMerged(${index},event)"><i data-lucide="save" style="width:12px;height:12px;"></i> Guardar</button>
+      <button class="ov-btn" style="top:5px;left:5px;" onclick="trigQEdit('${token.word.replace(/'/g,"\\'")}',${index},event)" title="Cambiar imagen"><i data-lucide="pencil" style="width:11px;height:11px;"></i></button>
+      <button class="ov-btn" style="bottom:5px;left:5px;top:auto;transform:none;" onclick="openTSearch(${index},event)" title="Buscar ARASAAC"><i data-lucide="search" style="width:11px;height:11px;"></i></button>
+      ${multi?`<button class="nav-btn nav-prev" onclick="changeImg(${index},-1,event)"><i data-lucide="chevron-left" style="width:13px;height:13px;"></i></button>`:''}
+      <div id="iw-${index}" style="position:absolute;top:.75rem;left:.75rem;right:.75rem;bottom:.75rem;display:flex;align-items:center;justify-content:center;">${mediaHtml(token.images[token.ci],token.word,token.bc)}</div>
+      ${multi?`<button class="nav-btn nav-next" onclick="changeImg(${index},1,event)"><i data-lucide="chevron-right" style="width:13px;height:13px;"></i></button>`:''}
+    </div>
+    <div class="p-lbl" onclick="playWord('${token.word.replace(/'/g,"\\'")}',this.parentElement,${tA},${lA})">
+      <span>${token.word}</span>
+      ${token.tw?`<span style="font-size:.65rem;color:var(--slate-500);text-transform:none;font-weight:normal;display:block;margin-top:1px;">${token.tw}</span>`:''}
+    </div>`;
+  // drag desktop
+  card.addEventListener('dragstart',e=>{if(e.target.closest('.ov-btn,.nav-btn,.save-btn')){e.preventDefault();return;}dragIdx=index;card.style.opacity='.4';card.style.transform='scale(.95)';e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',String(index));});
+  card.addEventListener('dragend',()=>{card.style.opacity='';card.style.transform='';dragIdx=null;});
+  card.addEventListener('dragover',e=>{e.preventDefault();applyDFb(card,e.clientX);});
+  card.addEventListener('dragleave',()=>clearDFb(card));
+  card.addEventListener('drop',async e=>{e.preventDefault();clearDFb(card);if(dragIdx!==null&&dragIdx!==index){const rect=card.getBoundingClientRect();await doDrop(dragIdx,index,e.clientX-rect.left,rect.width);}});
+  // touch
+  card.addEventListener('touchstart',e=>{if(e.target.closest('.ov-btn,.nav-btn,.save-btn,.p-img')) return;touchX0=e.touches[0].clientX;touchY0=e.touches[0].clientY;dragIdx=index;touchSrc=card;isTouchDrag=false;},{passive:true});
+  document.getElementById('pictoGrid').appendChild(card);
+}
+
+function applyDFb(card,cx){
+  const r=card.getBoundingClientRect();const x=cx-r.left;const w=r.width;
+  card.style.zIndex='10';
+  if(x<w*.25){card.style.transform='translateX(8px)';card.style.boxShadow='-5px 0 0 var(--primary)';}
+  else if(x>w*.75){card.style.transform='translateX(-8px)';card.style.boxShadow='5px 0 0 var(--primary)';}
+  else{card.style.transform='scale(1.05)';card.style.boxShadow='0 0 18px var(--success)';}
+}
+function clearDFb(card){card.style.transform='';card.style.boxShadow='';card.style.zIndex='';}
+function clearAllDFb(){document.querySelectorAll('#pictoGrid .p-card').forEach(c=>clearDFb(c));}
+function moveGhost(x,y){const g=document.getElementById('drag-ghost');g.style.left=(x-70)+'px';g.style.top=(y-60)+'px';}
+
+document.addEventListener('touchmove',e=>{
+  if(!touchSrc) return;
+  const dx=Math.abs(e.touches[0].clientX-touchX0),dy=Math.abs(e.touches[0].clientY-touchY0);
+  if(!isTouchDrag&&(dx>8||dy>8)){
+    isTouchDrag=true;const g=document.getElementById('drag-ghost');g.innerHTML=touchSrc.innerHTML;g.style.display='block';touchSrc.classList.add('is-drag');
+  }
+  if(isTouchDrag){
+    e.preventDefault();moveGhost(e.touches[0].clientX,e.touches[0].clientY);
+    const g=document.getElementById('drag-ghost');g.style.display='none';
+    const below=document.elementFromPoint(e.touches[0].clientX,e.touches[0].clientY);g.style.display='block';
+    clearAllDFb();const tc=below?below.closest('#pictoGrid .p-card'):null;
+    if(tc&&tc!==touchSrc) applyDFb(tc,e.touches[0].clientX);
+  }
+},{passive:false});
+document.addEventListener('touchend',async e=>{
+  if(!touchSrc) return;
+  if(isTouchDrag){
+    const g=document.getElementById('drag-ghost');g.style.display='none';touchSrc.classList.remove('is-drag');
+    const touch=e.changedTouches[0];const below=document.elementFromPoint(touch.clientX,touch.clientY);
+    const tc=below?below.closest('#pictoGrid .p-card'):null;clearAllDFb();
+    if(tc&&tc!==touchSrc){const ti=parseInt(tc.id.split('-')[1]);const rect=tc.getBoundingClientRect();await doDrop(dragIdx,ti,touch.clientX-rect.left,rect.width);}
+  }
+  touchSrc=null;dragIdx=null;isTouchDrag=false;
+},{passive:true});
+
+async function doDrop(from,to,dropX,tw){
+  const merge=(dropX>=tw*.25&&dropX<=tw*.75);
+  if(merge){
+    setTLoad(true,'Uniendo pictogramas...');
+    const f=Math.min(from,to),s=Math.max(from,to);
+    const t1=tokens[f],t2=tokens[s];
+    const mw=t1.word+' '+t2.word;const imgs=[...new Set([...t1.images,...t2.images])];
+    const mbc=borderColor(mw)||t1.bc;
+    const tr=['#22c55e','#eab308','#3b82f6'].includes(mbc);
+    let mtw=null;if(tLang!=='none'&&tr) mtw=await trans(mw,tLang);
+    tokens.splice(s,1);tokens.splice(f,1);tokens.splice(f,0,{word:mw,images:imgs,ci:0,bc:mbc,tw:mtw,isMerged:true,isMod:false});
+  } else {
+    const item=tokens.splice(from,1)[0];let ti=to;if(from<to)ti--;
+    const ins=(dropX>tw*.75)?ti+1:ti;tokens.splice(ins,0,item);
+  }
+  document.getElementById('mainInput').value=tokens.map(t=>t.word).join(' ');
+  document.getElementById('pictoGrid').innerHTML='';tokens.forEach((t,i)=>createTeacherCard(t,i));setTLoad(false);lucide.createIcons();
+}
+
+function changeImg(idx,dir,event){
+  if(event) event.stopPropagation();
+  const t=tokens[idx];if(!t||t.images.length<=1) return;
+  t.ci=(t.ci+dir+t.images.length)%t.images.length;t.isMod=true;
+  const w=document.getElementById(`iw-${idx}`);if(w) w.innerHTML=mediaHtml(t.images[t.ci],t.word,t.bc);
+  const b=document.getElementById(`sb-${idx}`);if(b) b.classList.add('show');
+}
+
+function saveMerged(index,event){
+  if(event) event.stopPropagation();
+  const tok=tokens[index];if(!tok) return;
+  const c=clean(tok.word);
+  // Guardar la imagen actualmente visible (índice ci)
+  const img=tok.images[tok.ci];
+  if(!img){toast('No hay imagen para guardar');return;}
+  tPictos[c]=img;
+  dbPut(ST,{word:c,data:img});
+  // Marcar el token como ya no modificado/unido pendiente
+  tok.isMerged=false;tok.isMod=false;
+  // Ocultar botón guardar
+  const b=document.getElementById(`sb-${index}`);if(b) b.classList.remove('show');
+  renderTUpList();
+  toast(`"${tok.word}" guardado — se reconocerá automáticamente`);
+}
+
+// Quick edit tablero
+function trigQEdit(word,index,event){if(event) event.stopPropagation();tEditWord=clean(word);tEditIdx=index;document.getElementById('t-quick-edit').click();}
+async function handleTeacherQuickEdit(event){
+  const file=event.target.files[0];if(!file||!tEditWord) return;
+  setTLoad(true,'Guardando...');const rd=new FileReader();
+  rd.onload=async e=>{
+    let data=e.target.result;if(file.type.startsWith('image/')&&file.type!=='image/gif') data=await compressImg(data);
+    tPictos[tEditWord]=data;dbPut(ST,{word:tEditWord,data});
+    if(tEditIdx!==null&&tokens[tEditIdx]){tokens[tEditIdx].images=[data];tokens[tEditIdx].ci=0;const w=document.getElementById(`iw-${tEditIdx}`);if(w) w.innerHTML=mediaHtml(data,tokens[tEditIdx].word,tokens[tEditIdx].bc);}
+    renderTUpList();setTLoad(false);toast(`"${tEditWord}" actualizado`);
+  };rd.readAsDataURL(file);event.target.value='';
+}
+
+// Modal buscar ARASAAC tablero
+function openTSearch(index,event){if(event) event.stopPropagation();teacherSearchIdx=index;teacherSearchSel=null;document.getElementById('teacherSearchInput').value='';document.getElementById('teacherSearchResults').innerHTML='';document.getElementById('teacherSearchModal').classList.add('open');lucide.createIcons();setTimeout(()=>document.getElementById('teacherSearchInput').focus(),100);}
+function closeTeacherSearch(){document.getElementById('teacherSearchModal').classList.remove('open');}
+async function runTeacherSearch(){
+  const term=clean(document.getElementById('teacherSearchInput').value.trim());if(!term) return;
+  const res=document.getElementById('teacherSearchResults');res.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:1rem;color:var(--slate-400);font-size:.8rem;">Buscando...</div>';teacherSearchSel=null;
+  let imgs=await fetchArasaac(term);if(!imgs.length){for(const inf of infinitives(term)){imgs=await fetchArasaac(inf);if(imgs.length) break;}}
+  if(!imgs.length){res.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:1rem;color:var(--slate-400);font-size:.8rem;">Sin resultados</div>';return;}
+  res.innerHTML='';
+  imgs.forEach(url=>{const d=document.createElement('div');d.className='sr-item';d.innerHTML=`<img src="${url}" crossorigin="anonymous">`;d.onclick=()=>{teacherSearchSel=url;document.querySelectorAll('.sr-item').forEach(x=>x.classList.remove('sel'));d.classList.add('sel');};res.appendChild(d);});
+}
+function applyTeacherSearch(){
+  if(!teacherSearchSel||teacherSearchIdx===null){toast('Selecciona una imagen primero');return;}
+  const tok=tokens[teacherSearchIdx];if(!tok) return;
+  const c=clean(tok.word);if(!tok.images.includes(teacherSearchSel)) tok.images.unshift(teacherSearchSel);tok.ci=tok.images.indexOf(teacherSearchSel);tok.isMod=true;
+  tPictos[c]=teacherSearchSel;dbPut(ST,{word:c,data:teacherSearchSel});
+  const w=document.getElementById(`iw-${teacherSearchIdx}`);if(w) w.innerHTML=mediaHtml(teacherSearchSel,tok.word,tok.bc);
+  renderTUpList();closeTeacherSearch();toast(`"${tok.word}" actualizado`);
+}
+
+// Subida pictos profesor
+function setTUpMode(m){tUpMode=m;document.getElementById('tMF').className='btn '+(m==='file'?'btn-p':'btn-g');document.getElementById('tMU').className='btn '+(m==='url'?'btn-p':'btn-g');document.getElementById('tFileBox').style.display=m==='file'?'block':'none';document.getElementById('tUrlBox').style.display=m==='url'?'block':'none';}
+async function saveTUp(){
+  const word=clean(document.getElementById('tUpWord').value);if(!word){toast('Escribe una palabra clave');return;}
+  setTLoad(true,'Guardando...');
+  if(tUpMode==='file'){const f=document.getElementById('tFile').files[0];if(!f){setTLoad(false);toast('Selecciona un archivo');return;}const rd=new FileReader();rd.onload=async e=>{const d=await compressImg(e.target.result);tPictos[word]=d;dbPut(ST,{word,data:d});renderTUpList();setTLoad(false);toast(`"${word}" guardado`);};rd.readAsDataURL(f);}
+  else{const url=document.getElementById('tUrl').value.trim();if(!url){setTLoad(false);toast('Introduce una URL');return;}tPictos[word]=url;dbPut(ST,{word,data:url});renderTUpList();setTLoad(false);toast(`"${word}" guardado`);}
+}
+async function loadTPictos(){const items=await dbAll(ST);tPictos={};items.forEach(i=>tPictos[i.word]=i.data);renderTUpList();}
+function removeTpicto(word){delete tPictos[word];dbDel(ST,word);renderTUpList();}
+function renderTUpList(){
+  const l=document.getElementById('tUpList');l.innerHTML='';const keys=Object.keys(tPictos);
+  if(!keys.length){l.innerHTML='<span style="font-size:.75rem;color:var(--slate-400);">Sin recursos personalizados.</span>';return;}
+  keys.forEach(w=>{const src=tPictos[w];const isV=typeof src==='string'&&src.startsWith('data:video');const ch=document.createElement('div');ch.style='display:flex;align-items:center;background:#fff;border:1px solid var(--slate-200);padding:3px 10px 3px 4px;border-radius:20px;font-size:.72rem;gap:6px;';ch.innerHTML=`${isV?`<video src="${src}" autoplay loop muted playsinline style="width:20px;height:20px;border-radius:50%;object-fit:cover;"></video>`:`<img src="${src}" style="width:20px;height:20px;border-radius:50%;object-fit:cover;">`}<span>${w}</span><button onclick="removeTpicto('${w}')" style="background:none;border:none;color:var(--red-500);cursor:pointer;padding:0;display:flex;align-items:center;margin-left:4px;"><i data-lucide="x" style="width:12px;height:12px;"></i></button>`;l.appendChild(ch);});lucide.createIcons();
+}
+
+// Lectura todo
+async function readAll(){
+  if(isReading||!tokens.length) return;
+  window.speechSynthesis.speak(new SpeechSynthesisUtterance(''));isReading=true;document.getElementById('btnStop').style.display='flex';document.getElementById('btnReadAll').style.opacity='.5';
+  for(let i=0;i<tokens.length;i++){if(!isReading) break;const t=tokens[i];await playWord(t.word,document.getElementById(`tc-${i}`),t.tw,tLang!=='none'?tLang:null);if(isReading) await new Promise(r=>setTimeout(r,300));}
+  stopRead();
+}
+function stopRead(){isReading=false;window.speechSynthesis.cancel();window._utts=[];document.querySelectorAll('.p-card').forEach(c=>c.classList.remove('p-active'));document.getElementById('btnStop').style.display='none';document.getElementById('btnReadAll').style.opacity='1';}
+function resetTeacher(){document.getElementById('mainInput').value='';document.getElementById('pictoGrid').innerHTML='';document.getElementById('outputContainer').style.display='none';tokens=[];stopRead();}
+
+// ════════════════════════════════════════════════
+//  DICTADO + ESCUCHA ACTIVA (WAKE WORD)
+// ════════════════════════════════════════════════
+const isAndroid=/Android/i.test(navigator.userAgent);
+
+// ── Estado dictado manual ──
+let recog=null, isListen=false, dictTout, dictFinal='';
+
+// ─── UI del micrófono manual ───
+function updMicUI(on){
+  const b=document.getElementById('btnMic');if(!b) return;
+  if(on){b.classList.add('mic-on');b.innerHTML='<i data-lucide="mic-off" style="width:15px;height:15px;"></i>';}
+  else{b.classList.remove('mic-on');b.innerHTML='<i data-lucide="mic" style="width:15px;height:15px;"></i>';}
+  lucide.createIcons();
+}
+
+// ─── Dictado manual (lógica original) ───
+function initRecog(){
+  window.SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!window.SpeechRecognition){toast('Reconocimiento de voz no compatible');return false;}
+  recog=new SpeechRecognition();recog.continuous=true;recog.interimResults=true;recog.lang='es-ES';
+  recog.onresult=function(e){
+    if(!isListen) return;
+    let iT='',nF='';
+    for(let i=e.resultIndex;i<e.results.length;++i){
+      if(e.results[i].isFinal) nF+=e.results[i][0].transcript;
+      else iT+=e.results[i][0].transcript;
+    }
+    if(nF){dictFinal+=nF;if(!dictFinal.endsWith(' '))dictFinal+=' ';}
+    const full=(dictFinal+iT).trim();
+    const inp=document.getElementById('mainInput');
+    if(inp.value!==full){inp.value=full;clearTimeout(dictTout);dictTout=setTimeout(()=>startConversion(),200);}
+    clearTimeout(window._st);
+    window._st=setTimeout(()=>{if(isListen) stopDict();},1500);
+  };
+  recog.onerror=e=>{
+    if(e.error==='not-allowed'){toast('Permiso micrófono denegado');isListen=false;updMicUI(false);}
+  };
+  recog.onend=()=>{
+    if(isListen){
+      // El dictado sigue activo — reiniciar recog para mantenerlo continuo
+      dictFinal=document.getElementById('mainInput').value;
+      if(dictFinal&&!dictFinal.endsWith(' '))dictFinal+=' ';
+      try{recog.start();}catch(e){}
+    } else {
+      // Dictado terminado — reanudar escucha activa si está activada
+      // IMPORTANTE: resetear isWakeFiring AQUÍ para que resumeWake pueda arrancar
+      isWakeFiring=false;
+      if(isWakeOn){
+        // Pequeño delay para que el navegador libere el micrófono del dictado
+        // antes de que el wakeRecog intente tomarlo
+        setTimeout(()=>{
+          if(isWakeOn&&!isListen) resumeWake();
+        }, 350);
+      }
+    }
+  };
+  return true;
+}
+
+function startDict(){
+  if(isListen) return;
+  // Pausar escucha activa mientras dictamos
+  if(isWakeOn) pauseWake();
+  isListen=true;
+  dictFinal=document.getElementById('mainInput').value;
+  if(dictFinal&&!dictFinal.endsWith(' '))dictFinal+=' ';
+  updMicUI(true);
+  if(!recog&&!initRecog()) return;
+  try{recog.start();}catch(e){}
+}
+
+function stopDict(){
+  if(!isListen) return;
+  isListen=false;
+  clearTimeout(window._st);
+  updMicUI(false);
+  try{recog.stop();}catch(e){}
+  // recog.onend se encargará de reanudar la escucha activa si está activada
+}
+
+function toggleDictation(){
+  if(isAndroid){toast('Dictado no disponible en Android');return;}
+  if(isListen) stopDict();
+  else{if(!recog&&!initRecog()) return;startDict();toast('Micrófono activado...');}
+}
+
+// ─── Escucha activa (wake word) — versión robusta ───
+// El objeto SpeechRecognition se RECREA en cada arranque para evitar estados zombie.
+// Un watchdog detecta si la instancia deja de emitir eventos y la reinicia.
+
+let wakeRecog=null, isWakeOn=false, isWakeFiring=false;
+let wakeRestartTimer=null;   // backoff timer entre reinicios
+let wakeWatchdog=null;       // watchdog que detecta instancias muertas
+let wakeRestartDelay=200;    // ms de espera antes de reiniciar (se duplica en cada error)
+const WAKE_MAX_DELAY=8000;   // máximo backoff: 8 s
+const WAKE_WATCHDOG_MS=12000;// si en 12s no hay ningún evento, reiniciar
+const WAKE_WORDS=['oye noga','oye nova','oye noca','oi noga','oi nova'];
+
+// Crea un objeto SpeechRecognition fresco y lo arranca
+function _createAndStartWake(){
+  // Limpiar instancia anterior
+  if(wakeRecog){
+    wakeRecog.onresult=null;wakeRecog.onerror=null;wakeRecog.onend=null;wakeRecog.onstart=null;
+    try{wakeRecog.abort();}catch(e){}
+    wakeRecog=null;
+  }
+  if(!isWakeOn) return;
+
+  window.SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!window.SpeechRecognition) return;
+
+  const wr=new SpeechRecognition();
+  wr.continuous=true;
+  wr.interimResults=true;
+  wr.lang='es-ES';
+  wr.maxAlternatives=1;
+  wakeRecog=wr;
+
+  // Watchdog: si en WAKE_WATCHDOG_MS no llega ningún evento, la instancia murió
+  function resetWatchdog(){
+    clearTimeout(wakeWatchdog);
+    wakeWatchdog=setTimeout(()=>{
+      if(isWakeOn&&!isListen&&!isWakeFiring){
+        console.warn('[Wake] Watchdog disparado — reiniciando');
+        setWakeStatus('reconnecting');
+        _scheduleWakeRestart(500);
+      }
+    },WAKE_WATCHDOG_MS);
+  }
+
+  wr.onstart=()=>{
+    wakeRestartDelay=200; // reset backoff al arrancar con éxito
+    setWakeStatus('idle');
+    resetWatchdog();
+  };
+
+  wr.onresult=function(e){
+    if(!isWakeOn||isWakeFiring||isListen) return;
+    resetWatchdog();
+    let heard='';
+    for(let i=e.resultIndex;i<e.results.length;++i){
+      heard+=e.results[i][0].transcript.toLowerCase();
+    }
+    if(WAKE_WORDS.some(ww=>heard.includes(ww))){
+      isWakeFiring=true;
+      onWakeDetected();
+    }
+  };
+
+  wr.onerror=function(e){
+    resetWatchdog();
+    if(e.error==='not-allowed'||e.error==='service-not-allowed'){
+      toast('Permiso de micrófono denegado');
+      stopWakeWord();
+      return;
+    }
+    // 'no-speech', 'network', 'audio-capture', 'aborted' → reintentar
+    if(isWakeOn&&!isListen&&!isWakeFiring){
+      if(e.error==='network'||e.error==='audio-capture'){
+        setWakeStatus('reconnecting');
+      }
+      // El onend se encargará del reinicio
+    }
+  };
+
+  wr.onend=function(){
+    clearTimeout(wakeWatchdog);
+    if(!isWakeOn||isListen||isWakeFiring) return;
+    // Reinicio con backoff
+    _scheduleWakeRestart(wakeRestartDelay);
+  };
+
+  try{ wr.start(); }
+  catch(err){
+    if(isWakeOn&&!isListen) _scheduleWakeRestart(wakeRestartDelay);
+  }
+}
+
+function _scheduleWakeRestart(delay){
+  clearTimeout(wakeRestartTimer);
+  if(!isWakeOn||isListen||isWakeFiring) return;
+  setWakeStatus('reconnecting');
+  wakeRestartDelay=Math.min(wakeRestartDelay*2, WAKE_MAX_DELAY);
+  wakeRestartTimer=setTimeout(()=>{
+    if(isWakeOn&&!isListen&&!isWakeFiring) _createAndStartWake();
+  }, delay);
+}
+
+// Tres estados visuales del orbe
+function setWakeStatus(state){
+  const orb=document.getElementById('wakeOrb');
+  const txt=document.getElementById('wakeTxt');
+  const bar=document.getElementById('wakeBar');
+  if(!orb) return;
+  // Limpiar clases de estado de la barra
+  if(bar) bar.classList.remove('state-reconnecting','state-listening');
+  if(state==='idle'){
+    orb.style.background='#3b82f6';orb.style.animation='wakeIdle 2.5s ease-in-out infinite';orb.style.boxShadow='none';
+    if(txt) txt.innerHTML='Escucha activa — di <strong style="color:#fff;">"Oye Noga"</strong> o <strong style="color:#fff;">"Oye Nova"</strong> para dictar';
+  } else if(state==='listening'){
+    if(bar) bar.classList.add('state-listening');
+    orb.style.background='#ef4444';orb.style.animation='wakeListen 1s ease-in-out infinite';orb.style.boxShadow='0 0 0 0 rgba(239,68,68,.5)';
+    if(txt) txt.innerHTML='🎤 <strong style="color:#fff;">¡Escuchando!</strong> Habla ahora...';
+  } else if(state==='reconnecting'){
+    if(bar) bar.classList.add('state-reconnecting');
+    orb.style.background='#f59e0b';orb.style.animation='wakeIdle 0.8s ease-in-out infinite';orb.style.boxShadow='none';
+    if(txt) txt.innerHTML='⟳ Reconectando micrófono...';
+  }
+}
+// Alias para compatibilidad con código anterior
+function setWakeOrbState(s){ setWakeStatus(s); }
+
+function onWakeDetected(){
+  setWakeStatus('listening');
+  playWakeBeep();
+  dictFinal='';
+  document.getElementById('mainInput').value='';
+  startDict();
+}
+
+function pauseWake(){
+  clearTimeout(wakeRestartTimer);
+  clearTimeout(wakeWatchdog);
+  if(wakeRecog){
+    // Desconectar handlers para que onend no dispare un reinicio mientras dictamos
+    wakeRecog.onresult=null;
+    wakeRecog.onerror=null;
+    wakeRecog.onend=null;
+    wakeRecog.onstart=null;
+    try{wakeRecog.stop();}catch(e){}
+    wakeRecog=null;
+  }
+}
+
+function resumeWake(){
+  // isWakeFiring ya se resetea en recog.onend antes de llamar a esta función
+  if(isWakeOn&&!isListen){
+    _createAndStartWake();
+  }
+}
+
+function toggleWakeWord(){
+  if(isAndroid){toast('Escucha activa no disponible en Android');return;}
+  if(isWakeOn) stopWakeWord();
+  else startWakeWord();
+}
+
+function startWakeWord(){
+  window.SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!window.SpeechRecognition){toast('Reconocimiento de voz no compatible con este navegador');return;}
+  isWakeOn=true;isWakeFiring=false;wakeRestartDelay=200;
+  document.getElementById('wakeBar').style.display='flex';
+  const btn=document.getElementById('btnWake');btn.classList.add('wake-btn-on');btn.title='Desactivar escucha activa';
+  setWakeStatus('reconnecting'); // amber mientras arranca
+  _createAndStartWake();
+  toast('"Oye Noga" / "Oye Nova" para dictar');
+}
+
+function stopWakeWord(){
+  isWakeOn=false;isWakeFiring=false;
+  clearTimeout(wakeRestartTimer);clearTimeout(wakeWatchdog);
+  if(wakeRecog){
+    wakeRecog.onresult=null;wakeRecog.onerror=null;wakeRecog.onend=null;wakeRecog.onstart=null;
+    try{wakeRecog.abort();}catch(e){}
+    wakeRecog=null;
+  }
+  if(isListen) stopDict();
+  document.getElementById('wakeBar').style.display='none';
+  const btn=document.getElementById('btnWake');btn.classList.remove('wake-btn-on');btn.title='Activar escucha activa';
+  lucide.createIcons();
+  toast('Escucha activa desactivada');
+}
+
+// Beep suave de confirmación
+function playWakeBeep(){
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    [880,1100].forEach((freq,i)=>{
+      const osc=ctx.createOscillator();const gain=ctx.createGain();
+      osc.connect(gain);gain.connect(ctx.destination);
+      osc.frequency.value=freq;osc.type='sine';
+      gain.gain.setValueAtTime(0,ctx.currentTime+i*.08);
+      gain.gain.linearRampToValueAtTime(0.18,ctx.currentTime+i*.08+.04);
+      gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+i*.08+.18);
+      osc.start(ctx.currentTime+i*.08);osc.stop(ctx.currentTime+i*.08+.2);
+    });
+  }catch(e){}
+}
+
+// ════════════════════════════════════════════════
+//  MODO PANTALLA COMPLETA ALUMNO + MODO FILTRO
+// ════════════════════════════════════════════════
+// Cache de todos los pictos de todas las categorías para el modo expandido
+async function toggleFullscreen(){
+  isFull=!isFull;
+  const sz=document.getElementById('sZone');
+  const btn=document.getElementById('btnFull');
+  const backPill=document.getElementById('backPill');
+  if(isFull){
+    document.body.classList.add('s-full');
+    sz.classList.add('fullscreen');
+    btn.innerHTML='<i data-lucide="minimize-2" style="width:15px;height:15px;"></i>';
+    btn.title='Salir de pantalla completa';
+    // Ocultar el botón "Volver" — en modo filtro no hay jerarquía
+    backPill.classList.remove('show');
+    // Activar modo filtro: cargar todos los pictos y mostrarlos
+    activeFilterCats=new Set(['all']);
+    await loadAllItemsCache();
+    renderFilterNav();
+    renderFilteredGrid();
+  } else {
+    document.body.classList.remove('s-full');
+    sz.classList.remove('fullscreen');
+    btn.innerHTML='<i data-lucide="maximize-2" style="width:15px;height:15px;"></i>';
+    btn.title='Pantalla completa alumno';
+    allItemsCache=null;
+    // Volver al modo de navegación normal
+    aacCurCat=null;
+    renderAacNav();
+    renderAacRoot();
+  }
+  lucide.createIcons();
+}
+
+// Precarga TODOS los pictos de todas las categorías en paralelo por lotes
+async function loadAllItemsCache(){
+  setALoad(true);
+  document.getElementById('aacGrid').innerHTML='';
+  const cats=allCats();
+  const hasPictos=Object.keys(aacPictos).length>0;
+
+  allItemsCache=[];
+
+  // Procesar categorías secuencialmente para no saturar la API
+  for(const cat of cats){
+    const ck=cat.id+'_'+aacLang;
+    if(!aacCatCache[ck]){
+      const res=[];
+      for(const wObj of cat.words){
+        const lbl=typeof wObj==='string'?wObj:wObj.label;
+        let imgs=wObj.images&&wObj.images.length?wObj.images:(wObj.imageUrl?[wObj.imageUrl]:[]);
+        if(!imgs.length){const fetched=await fetchBest(lbl);imgs=fetched;}
+        let tr=null;if(aacLang!=='none') tr=await trans(lbl,aacLang);
+        res.push({label:lbl,images:imgs,ci:(wObj.ci||0),imageUrl:imgs[wObj.ci||0]||null,videoSrc:wObj.videoSrc||null,translated:tr,isCustom:false});
+      }
+      aacCatCache[ck]=res;
+    }
+    aacCatCache[ck].forEach(item=>{
+      allItemsCache.push({...item,catId:cat.id,catName:cat.name,catColor:cat.color});
+    });
+  }
+
+  // Pictos propios (aacPictos)
+  if(hasPictos){
+    Object.keys(aacPictos).forEach(word=>{
+      const src=aacPictos[word];const isV=typeof src==='string'&&src.startsWith('data:video');
+      allItemsCache.push({label:word,imageUrl:isV?null:src,videoSrc:isV?src:null,isCustom:true,translated:null,catId:'_own',catName:'Personalizados',catColor:'#4f6ef7'});
+    });
+  }
+
+  setALoad(false);
+}
+
+// Renderiza el nav como filtros de categoría
+function renderFilterNav(){
+  const nav=document.getElementById('aacNav');nav.innerHTML='';
+  const cats=allCats();
+  const hasPictos=Object.keys(aacPictos).length>0;
+  if(hasPictos) cats.push({id:'_own',name:'Personalizados',color:'#4f6ef7'});
+
+  // Pill "Todas"
+  const allBtn=document.createElement('button');
+  const allActive=activeFilterCats.has('all');
+  allBtn.className='nav-pill all-pill'+(allActive?' on':'');
+  allBtn.innerHTML='Todas';
+  allBtn.onclick=()=>{activeFilterCats=new Set(['all']);renderFilterNav();renderFilteredGrid();};
+  nav.appendChild(allBtn);
+
+  cats.forEach(cat=>{
+    const btn=document.createElement('button');
+    const isOn=!activeFilterCats.has('all')&&activeFilterCats.has(cat.id);
+    btn.className='nav-pill'+(isOn?' on':'');
+    btn.innerHTML=cat.name;
+    btn.style.borderColor=cat.color||'var(--aac-border)';
+    if(isOn){btn.style.background=cat.color;btn.style.borderColor=cat.color;}
+    btn.onclick=()=>toggleFilterCat(cat.id,cat.color);
+    nav.appendChild(btn);
+  });
+}
+
+function toggleFilterCat(catId, color){
+  // Si estaba en "todas", pasar a filtro individual
+  if(activeFilterCats.has('all')){
+    activeFilterCats=new Set([catId]);
+  } else {
+    // Toggle la categoría
+    if(activeFilterCats.has(catId)){
+      activeFilterCats.delete(catId);
+      // Si no queda ninguna, volver a "todas"
+      if(activeFilterCats.size===0) activeFilterCats=new Set(['all']);
+    } else {
+      activeFilterCats.add(catId);
+    }
+  }
+  renderFilterNav();
+  renderFilteredGrid();
+}
+
+// Renderiza el grid filtrado — todos los pictos agrupados por categoría con separador
+function renderFilteredGrid(){
+  const grid=document.getElementById('aacGrid');grid.innerHTML='';
+  if(!allItemsCache) return;
+
+  const showAll=activeFilterCats.has('all');
+  // Agrupar por categoría manteniendo el orden
+  const catOrder=[];const bycat={};
+  allItemsCache.forEach(item=>{
+    if(!bycat[item.catId]){bycat[item.catId]=[];catOrder.push({id:item.catId,name:item.catName,color:item.catColor});}
+    bycat[item.catId].push(item);
+  });
+
+  let totalShown=0;
+  catOrder.forEach(({id,name,color})=>{
+    if(!showAll&&!activeFilterCats.has(id)) return;
+    const items=bycat[id];if(!items||!items.length) return;
+    totalShown+=items.length;
+
+    // Separador de categoría
+    const sep=document.createElement('div');sep.className='aac-cat-sep';
+    sep.innerHTML=`<div class="aac-cat-sep-line"></div><span class="aac-cat-sep-lbl" style="color:${color};border-color:${color};background:${color}18;">${name}</span><div class="aac-cat-sep-line"></div>`;
+    grid.appendChild(sep);
+
+    // Cards de la categoría
+    items.forEach(item=>grid.appendChild(makeAacCard(item)));
+  });
+
+  if(totalShown===0){
+    grid.innerHTML='<div style="grid-column:1/-1;text-align:center;color:var(--aac-muted);font-size:.85rem;padding:3rem;">No hay pictogramas en las categorías seleccionadas.</div>';
+  }
+  lucide.createIcons();
+}
+
+// ════════════════════════════════════════════════
+//  AAC — COMUNICADOR ALUMNO
+// ════════════════════════════════════════════════
+// Todas las categorías activas (predeterminadas + personalizadas)
+function allCats(){
+  const hidden=JSON.parse(localStorage.getItem('aac_hidden')||'[]');
+  const defs=DEF_CATS.filter(c=>!hidden.includes(c.id)).map(c=>({
+    id:c.id,name:c.name,color:c.color,imageUrl:null,isDefault:true,
+    words:c.defWords.map(w=>({label:w,images:[],ci:0,imageUrl:null,videoSrc:null}))
+  }));
+  return [...defs,...customCats];
+}
+
+function renderAacNav(){
+  // En modo fullscreen usamos renderFilterNav en su lugar
+  if(isFull){renderFilterNav();return;}
+  const nav=document.getElementById('aacNav');nav.innerHTML='';
+  const cats=allCats();const hasPictos=Object.keys(aacPictos).length>0;
+  if(hasPictos) cats.push({id:'_own',name:'Personalizados',color:'#4f6ef7'});
+  cats.forEach(cat=>{
+    const btn=document.createElement('button');
+    const isOn=aacCurCat===cat.id;
+    btn.className='nav-pill'+(isOn?' on':'');
+    btn.innerHTML=cat.name;
+    btn.style.borderColor=isOn?(cat.color||'var(--aac-accent)'):(cat.color||'var(--aac-border)');
+    if(isOn){btn.style.background=cat.color||'var(--aac-accent)';}
+    btn.onclick=()=>openAacCat(cat.id);nav.appendChild(btn);
+  });
+}
+
+async function renderAacRoot(){
+  aacCurCat=null;document.getElementById('backPill').classList.remove('show');
+  renderAacNav();const grid=document.getElementById('aacGrid');grid.innerHTML='';setALoad(false);
+  const cats=allCats();const hasPictos=Object.keys(aacPictos).length>0;
+  if(hasPictos) cats.push({id:'_own',name:'Personalizados',color:'#4f6ef7',imageUrl:null});
+  for(const cat of cats){
+    const card=document.createElement('div');card.className='aac-p-card is-cat fade-in';
+    card.style.borderColor=cat.color||'#ff8c00';
+    // Imagen: personalizada > pictograma ARASAAC > texto fallback
+    let imgH='';
+    if(cat.imageUrl){
+      imgH=`<img src="${cat.imageUrl}" crossorigin="anonymous" style="max-width:100%;max-height:100%;object-fit:contain;display:block;margin:auto;">`;
+    } else {
+      // Fondo de color suave + nombre en grande
+      imgH=`<span style="font-size:.9rem;font-weight:900;color:${cat.color||'#ff8c00'};text-align:center;line-height:1.2;padding:.3rem;">${cat.name.toUpperCase()}</span>`;
+    }
+    card.innerHTML=`
+      <div class="aac-p-img" style="background:${cat.color||'#ff8c00'}18;position:relative;">
+        <div style="position:absolute;inset:.35rem;display:flex;align-items:center;justify-content:center;">${imgH}</div>
+        <span class="cat-badge" style="background:${cat.color||'#ff8c00'};">Cat.</span>
+      </div>
+      <div class="aac-p-lbl" style="border-color:${cat.color||'#ff8c00'};background:${cat.color||'#ff8c00'}22;">
+        <span style="color:${cat.color||'#ff8c00'};">${cat.name}</span>
+      </div>`;
+    card.onclick=()=>openAacCat(cat.id);grid.appendChild(card);
+  }
+  lucide.createIcons();
+}
+
+async function openAacCat(catId){
+  aacCurCat=catId;renderAacNav();document.getElementById('backPill').classList.add('show');
+  setALoad(true);
+  if(catId==='_own'){
+    setALoad(false);const grid=document.getElementById('aacGrid');grid.innerHTML='';
+    const keys=Object.keys(aacPictos);
+    if(!keys.length){grid.innerHTML='<div style="grid-column:1/-1;text-align:center;color:var(--aac-muted);font-size:.82rem;padding:2rem;">Sube imágenes usando el botón + de arriba.</div>';return;}
+    keys.forEach(word=>{const src=aacPictos[word];const isV=typeof src==='string'&&src.startsWith('data:video');const item={label:word,imageUrl:isV?null:src,videoSrc:isV?src:null,isCustom:true,translated:null};if(aacLang!=='none') trans(word,aacLang).then(t=>{item.translated=t;});grid.appendChild(makeAacCard(item));});
+    lucide.createIcons();return;
+  }
+  const cats=allCats();const cat=cats.find(c=>c.id===catId);if(!cat){setALoad(false);return;}
+  const ck=catId+'_'+aacLang;
+  if(!aacCatCache[ck]){
+    const res=[];
+    for(const wObj of cat.words){
+      const lbl=typeof wObj==='string'?wObj:wObj.label;
+      let imgs=wObj.images&&wObj.images.length?wObj.images:(wObj.imageUrl?[wObj.imageUrl]:[]);
+      if(!imgs.length){const fetched=await fetchBest(lbl);imgs=fetched;}
+      let tr=null;if(aacLang!=='none') tr=await trans(lbl,aacLang);
+      res.push({label:lbl,images:imgs,ci:(wObj.ci||0),imageUrl:imgs[wObj.ci||0]||null,videoSrc:wObj.videoSrc||null,translated:tr,isCustom:false});
+    }
+    aacCatCache[ck]=res;
+  }
+  setALoad(false);const grid=document.getElementById('aacGrid');grid.innerHTML='';
+  aacCatCache[ck].forEach(item=>{grid.appendChild(makeAacCard(item));});
+  lucide.createIcons();
+}
+
+// Card comunicador — diseñada para uso táctil
+function makeAacCard(item){
+  const card=document.createElement('div');card.className='aac-p-card fade-in';
+  const bc=borderColor(item.label);card.style.borderColor=bc;
+  const imgs=item.images&&item.images.length?item.images:(item.imageUrl?[item.imageUrl]:[]);
+  const ci=item.ci||0;const multi=imgs.length>1;
+  const curImg=item.videoSrc?null:imgs[ci]||item.imageUrl||null;
+  const mediaH=item.videoSrc
+    ?`<video src="${item.videoSrc}" autoplay loop muted playsinline style="max-width:100%;max-height:100%;object-fit:contain;"></video>`
+    :curImg
+      ?`<img src="${curImg}" alt="${item.label}" crossorigin="anonymous" style="max-width:100%;max-height:100%;object-fit:contain;display:block;margin:auto;">`
+      :`<span style="font-size:1rem;font-weight:900;color:${bc};text-align:center;padding:.25rem;line-height:1.1;">${item.label.toUpperCase()}</span>`;
+  card.innerHTML=`
+    <div class="aac-p-img">
+      ${multi?`<button class="aac-nav-img-btn aac-nav-prev" onclick="aacChangeImg(this,event,-1)"><i data-lucide="chevron-left" style="width:14px;height:14px;"></i></button>`:''}
+      <div class="aac-img-inner" style="position:absolute;inset:.4rem;display:flex;align-items:center;justify-content:center;">${mediaH}</div>
+      ${multi?`<button class="aac-nav-img-btn aac-nav-next" onclick="aacChangeImg(this,event,1)"><i data-lucide="chevron-right" style="width:14px;height:14px;"></i></button>`:''}
+      ${item.isCustom?'<span class="custom-badge">Propio</span>':''}
+    </div>
+    <div class="aac-p-lbl" style="border-color:${bc};">
+      <span>${item.label}</span>
+      ${item.translated?`<span class="trl">${item.translated}</span>`:''}
+    </div>`;
+  card._aacItem={...item,images:imgs,ci};
+  card.addEventListener('click',e=>{if(!e.target.closest('.aac-nav-img-btn')) aacSelectWord(card._aacItem);});
+  return card;
+}
+
+function aacChangeImg(btn,event,dir){
+  event.stopPropagation();
+  const card=btn.closest('.aac-p-card');if(!card||!card._aacItem) return;
+  const item=card._aacItem;
+  if(!item.images||item.images.length<=1) return;
+  item.ci=(item.ci+dir+item.images.length)%item.images.length;
+  item.imageUrl=item.images[item.ci];
+  const inner=card.querySelector('.aac-img-inner');
+  if(inner) inner.innerHTML=`<img src="${item.images[item.ci]}" alt="${item.label}" crossorigin="anonymous" style="max-width:100%;max-height:100%;object-fit:contain;">`;
+}
+
+function aacGoBack(){
+  if(isFull){
+    // En modo expandido no hay "volver" — los filtros ya muestran todo
+    activeFilterCats=new Set(['all']);renderFilterNav();renderFilteredGrid();
+  } else {
+    renderAacRoot();
+  }
+}
+
+function aacSelectWord(item){
+  aacOutput.push({...item});renderAacOut();
+  const lbl=item.label||item.word||'';
+  speakTxt(lbl,'es-ES',voiceSpeed).then(()=>{if(item.translated&&aacLang!=='none') speakTxt(item.translated,LANG_LOC[aacLang]||'es-ES',voiceSpeed);});
+}
+
+function renderAacOut(){
+  const bar=document.getElementById('outBar');const empty=document.getElementById('outEmpty');
+  Array.from(bar.children).forEach(ch=>{
+    if(!ch.classList.contains('out-empty')&&!ch.classList.contains('bar-acts')) bar.removeChild(ch);
+  });
+  if(!aacOutput.length){empty.style.display='inline';return;}
+  empty.style.display='none';
+  const acts=bar.querySelector('.bar-acts');
+  aacOutput.forEach((item,idx)=>{
+    const lbl=item.label||item.word||'';
+    const tok=document.createElement('div');tok.className='out-tok';
+    tok.title='Toca para escuchar · mantén para borrar';
+    // Imagen
+    let mediaH='';
+    if(item.videoSrc) mediaH=`<video src="${item.videoSrc}" autoplay loop muted playsinline style="width:50px;height:50px;object-fit:contain;border-radius:.4rem;"></video>`;
+    else if(item.imageUrl) mediaH=`<img src="${item.imageUrl}" alt="${lbl}" style="width:50px;height:50px;object-fit:contain;border-radius:.4rem;">`;
+    else mediaH=`<span style="font-size:1.5rem;line-height:1;">❓</span>`;
+    tok.innerHTML=mediaH;
+    // Etiqueta
+    const lw=document.createElement('div');lw.className='tok-w';lw.textContent=lbl;tok.appendChild(lw);
+    if(item.translated){const tr=document.createElement('div');tr.className='tok-t';tr.textContent=item.translated;tok.appendChild(tr);}
+    // X de borrado individual (visible en hover / longpress)
+    const del=document.createElement('div');del.className='tok-del';del.innerHTML='✕';
+    del.onclick=e=>{e.stopPropagation();aacOutput.splice(idx,1);renderAacOut();};
+    tok.appendChild(del);
+    // Longpress en móvil para borrar
+    let lpTimer;
+    tok.addEventListener('touchstart',()=>{lpTimer=setTimeout(()=>{aacOutput.splice(idx,1);renderAacOut();},600);},{passive:true});
+    tok.addEventListener('touchend',()=>clearTimeout(lpTimer),{passive:true});
+    tok.addEventListener('touchmove',()=>clearTimeout(lpTimer),{passive:true});
+    // Click: reproducir
+    tok.onclick=()=>speakTxt(lbl,'es-ES',voiceSpeed);
+    bar.insertBefore(tok,acts);
+  });
+}
+function aacUndo(){if(!aacOutput.length) return;aacOutput.pop();renderAacOut();}
+function aacClear(){aacOutput=[];renderAacOut();}
+function aacSpeak(){
+  if(!aacOutput.length){toast('Añade palabras primero');return;}
+  // Si el comunicador está expandido, cerrarlo para que el docente vea la respuesta
+  if(isFull) toggleFullscreen();
+  const phrase=aacOutput.map(i=>i.label||i.word||'').join(' ');
+  if(window.speechSynthesis.speaking) window.speechSynthesis.cancel();
+  const ut=new SpeechSynthesisUtterance(phrase);ut.lang='es-ES';ut.rate=voiceSpeed;
+  const voices=window.speechSynthesis.getVoices();const v=voices.find(v=>v.lang.startsWith('es'));if(v) ut.voice=v;
+  if(aacLang!=='none'){
+    const tp=aacOutput.map(i=>i.translated||(i.label||i.word||'')).join(' ');
+    const ut2=new SpeechSynthesisUtterance(tp);const loc=LANG_LOC[aacLang]||'es-ES';ut2.lang=loc;ut2.rate=voiceSpeed;
+    const v2=voices.find(v=>v.lang.startsWith(aacLang));if(v2) ut2.voice=v2;
+    ut.onend=()=>window.speechSynthesis.speak(ut2);
+  }
+  window.speechSynthesis.speak(ut);
+}
+
+// Subida pictos propios AAC
+function setAacMode(m){
+  aacUpMode=m;if(m!=='camera') stopAacCam();else startAacCam();aacCaptB64=null;
+  ['file','url','camera'].forEach(x=>{const b=document.getElementById('aacM'+x.charAt(0).toUpperCase()+x.slice(1));if(b) b.classList.toggle('on',x===m);});
+  document.getElementById('aacFileBox').style.display=m==='file'?'block':'none';
+  document.getElementById('aacUrlBox').style.display=m==='url'?'block':'none';
+  document.getElementById('aacCamBox').style.display=m==='camera'?'flex':'none';
+}
+function handleAacFileSelect(e){const f=e.target.files[0];if(!f) return;document.getElementById('aacFName').textContent=f.name;const rd=new FileReader();rd.onload=ev=>{aacCaptB64=ev.target.result;};rd.readAsDataURL(f);e.target.value='';}
+async function startAacCam(){try{aacStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});document.getElementById('aacVid').srcObject=aacStream;}catch(e){}}
+function stopAacCam(){if(aacStream){aacStream.getTracks().forEach(t=>t.stop());aacStream=null;}if(aacMR&&aacMR.state==='recording') aacMR.stop();}
+function startAacRec(){
+  if(!aacStream) return;aacChunks=[];
+  let opts={mimeType:'video/webm;codecs=vp9,opus'};if(!MediaRecorder.isTypeSupported(opts.mimeType)) opts={mimeType:'video/webm'};if(!MediaRecorder.isTypeSupported(opts.mimeType)) opts={mimeType:'video/mp4'};
+  try{aacMR=new MediaRecorder(aacStream,opts);}catch(e){aacMR=new MediaRecorder(aacStream);}
+  aacMR.ondataavailable=e=>{if(e.data.size>0) aacChunks.push(e.data);};
+  aacMR.onstop=()=>{const blob=new Blob(aacChunks,{type:aacMR.mimeType||'video/mp4'});const rd=new FileReader();rd.readAsDataURL(blob);rd.onloadend=()=>{aacCaptB64=rd.result;toast('GIF/Vídeo capturado');const b=document.getElementById('aacRecBtn');b.disabled=false;b.innerHTML='<i data-lucide="circle-dot" style="width:14px;"></i> Grabar 3s';lucide.createIcons();};};
+  aacMR.start();const b=document.getElementById('aacRecBtn');b.disabled=true;b.textContent='Grabando...';
+  let t=3;const iv=setInterval(()=>{t--;if(t>0) b.textContent=`Grabando ${t}s...`;else{clearInterval(iv);if(aacMR.state==='recording') aacMR.stop();}},1000);
+}
+async function saveAacPicto(){
+  const word=clean(document.getElementById('aacUpWord').value);if(!word){toast('Escribe una palabra clave');return;}
+  let data=null;
+  if(aacUpMode==='file'){if(!aacCaptB64){toast('Selecciona un archivo primero');return;}const isV=aacCaptB64.startsWith('data:video');data=isV?aacCaptB64:await compressImg(aacCaptB64);}
+  else if(aacUpMode==='url'){data=document.getElementById('aacUrlIn').value.trim();if(!data){toast('Introduce una URL');return;}}
+  else if(aacUpMode==='camera'){if(!aacCaptB64){toast('Graba un vídeo primero');return;}data=aacCaptB64;}
+  if(!data) return;
+  aacPictos[word]=data;dbPut(SA,{word,data});aacCatCache={};
+  renderAacChips();toast(`"${word}" añadido al comunicador`);
+  document.getElementById('aacUpWord').value='';aacCaptB64=null;document.getElementById('aacFName').textContent='';
+  if(aacCurCat==='_own') openAacCat('_own');else renderAacNav();
+}
+async function loadAacPictos(){const items=await dbAll(SA);aacPictos={};items.forEach(i=>aacPictos[i.word]=i.data);renderAacChips();}
+function removeAacPicto(word){delete aacPictos[word];dbDel(SA,word);aacCatCache={};renderAacChips();if(aacCurCat==='_own') openAacCat('_own');else renderAacNav();}
+function renderAacChips(){
+  const l=document.getElementById('aacChipList');l.innerHTML='';const keys=Object.keys(aacPictos);
+  if(!keys.length){l.innerHTML='<span style="font-size:.72rem;color:var(--aac-muted);">No hay personalizados aún.</span>';return;}
+  keys.forEach(w=>{const src=aacPictos[w];const isV=typeof src==='string'&&src.startsWith('data:video');const ch=document.createElement('div');ch.className='chip';ch.innerHTML=`${isV?`<video src="${src}" autoplay loop muted playsinline style="width:18px;height:18px;border-radius:50%;object-fit:cover;"></video>`:`<img src="${src}">`}<span style="color:var(--aac-text);">${w}</span><button onclick="removeAacPicto('${w}')" title="Borrar"><i data-lucide="x" style="width:11px;height:11px;"></i></button>`;l.appendChild(ch);});lucide.createIcons();
+}
+
+// ════════════════════════════════════════════════
+//  EDITOR DE CATEGORÍAS
+// ════════════════════════════════════════════════
+async function loadCustomCats(){const items=await dbAll(SC);customCats=items||[];}
+async function saveCustomCats(){
+  const tx=db.transaction(SC,'readwrite');const store=tx.objectStore(SC);store.clear();
+  customCats.forEach(c=>store.put(c));
+  return new Promise((res,rej)=>{tx.oncomplete=res;tx.onerror=rej;});
+}
+
+function openEditor(){renderEditorList();document.getElementById('editorOv').classList.add('open');lucide.createIcons();}
+function closeEditor(){document.getElementById('editorOv').classList.remove('open');aacCatCache={};renderAacRoot();}
+
+// ─── Editor: lista de categorías ───
+function renderEditorList(){
+  const list=document.getElementById('edCatList');list.innerHTML='';
+  const hidden=JSON.parse(localStorage.getItem('aac_hidden')||'[]');
+
+  // Predeterminadas
+  DEF_CATS.forEach(cat=>{
+    const isHidden=hidden.includes(cat.id);const item=document.createElement('div');item.className='ed-cat-item';item.style.opacity=isHidden?'.45':'1';
+    item.innerHTML=`
+      <div class="ed-cat-hdr" onclick="toggleEdExp('${cat.id}')">
+        <div class="ed-cat-picto" style="border-color:${cat.color};">
+          <span style="font-size:1.2rem;">${cat.emoji}</span>
+        </div>
+        <span class="ed-cat-name">${cat.name}</span>
+        <span class="ed-cat-count">${cat.defWords.length} palabras · Predeterminada</span>
+        <div class="ed-cat-acts" onclick="event.stopPropagation()">
+          ${isHidden
+            ?`<button class="ed-ic" onclick="unhideDefCat('${cat.id}')" title="Mostrar en comunicador"><i data-lucide="eye" style="width:14px;"></i></button>`
+            :`<button class="ed-ic del" onclick="hideDefCat('${cat.id}')" title="Ocultar en comunicador"><i data-lucide="eye-off" style="width:14px;"></i></button>`}
+        </div>
+      </div>
+      ${edExpanded===cat.id&&!isHidden?renderDefWordsHtml(cat):''}`;
+    list.appendChild(item);
+  });
+
+  // Personalizadas
+  customCats.forEach((cat,idx)=>{
+    const exp=edExpanded===cat.id;const item=document.createElement('div');item.className='ed-cat-item';
+    item.innerHTML=`
+      <div class="ed-cat-hdr" onclick="toggleEdExp('${cat.id}')">
+        <div class="ed-cat-picto" style="border-color:${cat.color};">
+          ${cat.imageUrl?`<img src="${cat.imageUrl}" style="max-width:100%;max-height:100%;object-fit:contain;">`:`<span style="font-size:.6rem;color:var(--aac-muted);text-align:center;padding:2px;">${cat.name}</span>`}
+        </div>
+        <span class="ed-cat-name">${cat.name}</span>
+        <span class="ed-cat-count">${(cat.words||[]).length} palabras</span>
+        <div class="ed-cat-acts" onclick="event.stopPropagation()">
+          ${idx>0?`<button class="ed-ic" onclick="moveCat(${idx},-1)" title="Subir"><i data-lucide="chevron-up" style="width:14px;"></i></button>`:''}
+          ${idx<customCats.length-1?`<button class="ed-ic" onclick="moveCat(${idx},1)" title="Bajar"><i data-lucide="chevron-down" style="width:14px;"></i></button>`:''}
+          <button class="ed-ic" onclick="openEditCatDlg('${cat.id}')" title="Editar"><i data-lucide="pencil" style="width:14px;"></i></button>
+          <button class="ed-ic del" onclick="delCat('${cat.id}')" title="Eliminar"><i data-lucide="trash-2" style="width:14px;"></i></button>
+        </div>
+      </div>
+      ${exp?renderCustomWordsHtml(cat):''}`;
+    list.appendChild(item);
+  });
+  lucide.createIcons();
+}
+
+function renderDefWordsHtml(cat){
+  return `<div style="padding:.75rem 1rem;border-top:1px solid var(--aac-border);background:var(--aac-out);display:flex;flex-wrap:wrap;gap:6px;">
+    ${cat.defWords.map(w=>`<span style="background:${borderColor(w)}20;border:1.5px solid ${borderColor(w)};padding:3px 10px;border-radius:999px;font-size:.72rem;color:var(--aac-text);font-weight:700;">${w}</span>`).join('')}
+    <span style="width:100%;font-size:.7rem;color:var(--aac-muted);margin-top:.25rem;">Las palabras predeterminadas se gestionan automáticamente. Crea una categoría propia para control total.</span>
+  </div>`;
+}
+
+function renderCustomWordsHtml(cat){
+  const words=cat.words||[];
+  let html=`<div class="ed-word-grid">`;
+  words.forEach((wObj,wi)=>{
+    const imgs=wObj.images&&wObj.images.length?wObj.images:(wObj.imageUrl?[wObj.imageUrl]:[]);
+    const ci=wObj.ci||0;const curImg=wObj.videoSrc?null:imgs[ci]||null;
+    const multi=imgs.length>1;
+    const mediaH=wObj.videoSrc?`<video src="${wObj.videoSrc}" autoplay loop muted playsinline style="max-width:100%;max-height:100%;object-fit:contain;"></video>`:curImg?`<img src="${curImg}" crossorigin="anonymous" alt="${wObj.label}" style="max-width:100%;max-height:100%;object-fit:contain;">`:wObj.label?`<span style="font-size:.72rem;font-weight:900;color:${borderColor(wObj.label)};text-align:center;padding:.3rem;">${wObj.label.toUpperCase()}</span>`:`<span style="font-size:1.2rem;">❓</span>`;
+    html+=`<div class="ed-word-card" style="border-color:${borderColor(wObj.label)};">
+      <button class="ed-word-del" onclick="delWord('${cat.id}',${wi})">✕</button>
+      <div class="ed-word-img" style="position:relative;">
+        ${multi?`<button class="ed-word-nav ed-word-prev" onclick="edWordNav('${cat.id}',${wi},-1,event)"><i data-lucide="chevron-left" style="width:10px;height:10px;"></i></button>`:''}
+        <div id="ed-wi-${cat.id}-${wi}" style="position:absolute;inset:.3rem;display:flex;align-items:center;justify-content:center;">${mediaH}</div>
+        ${multi?`<button class="ed-word-nav ed-word-next" onclick="edWordNav('${cat.id}',${wi},1,event)"><i data-lucide="chevron-right" style="width:10px;height:10px;"></i></button>`:''}
+      </div>
+      <div class="ed-word-lbl"><span>${wObj.label}</span></div>
+    </div>`;
+  });
+  html+=`<div class="ed-add-word" onclick="openWordDlg('${cat.id}')"><i data-lucide="plus" style="width:20px;height:20px;color:var(--aac-muted);"></i><span>Añadir palabra</span></div>`;
+  html+=`</div>`;
+  return html;
+}
+
+function edWordNav(catId,wi,dir,event){
+  event.stopPropagation();
+  const cat=customCats.find(c=>c.id===catId);if(!cat||!cat.words[wi]) return;
+  const wObj=cat.words[wi];const imgs=wObj.images&&wObj.images.length?wObj.images:(wObj.imageUrl?[wObj.imageUrl]:[]);
+  if(imgs.length<=1) return;
+  wObj.ci=((wObj.ci||0)+dir+imgs.length)%imgs.length;wObj.imageUrl=imgs[wObj.ci];
+  saveCustomCats();
+  const wrap=document.getElementById(`ed-wi-${catId}-${wi}`);
+  if(wrap) wrap.innerHTML=`<img src="${imgs[wObj.ci]}" crossorigin="anonymous" alt="${wObj.label}" style="max-width:100%;max-height:100%;object-fit:contain;">`;
+}
+
+function toggleEdExp(id){edExpanded=(edExpanded===id)?null:id;renderEditorList();}
+function hideDefCat(id){const h=JSON.parse(localStorage.getItem('aac_hidden')||'[]');if(!h.includes(id)){h.push(id);localStorage.setItem('aac_hidden',JSON.stringify(h));}renderEditorList();}
+function unhideDefCat(id){let h=JSON.parse(localStorage.getItem('aac_hidden')||'[]');h=h.filter(x=>x!==id);localStorage.setItem('aac_hidden',JSON.stringify(h));renderEditorList();}
+function moveCat(idx,dir){const ni=idx+dir;if(ni<0||ni>=customCats.length) return;const tmp=customCats[idx];customCats[idx]=customCats[ni];customCats[ni]=tmp;saveCustomCats();renderEditorList();}
+function delCat(id){if(!confirm('¿Eliminar esta categoría y todas sus palabras?')) return;customCats=customCats.filter(c=>c.id!==id);saveCustomCats();aacCatCache={};renderEditorList();toast('Categoría eliminada');}
+function delWord(catId,wi){const cat=customCats.find(c=>c.id===catId);if(!cat) return;cat.words.splice(wi,1);saveCustomCats();aacCatCache={};renderEditorList();}
+
+// ─── Nueva categoría ───
+let newCatImgUrl=null;
+function addAacCategory(){
+  const name=document.getElementById('newCatName').value.trim();if(!name){toast('Escribe el nombre de la categoría');return;}
+  const color=document.getElementById('newCatColor').value||'#4f6ef7';
+  const id='c'+Date.now();
+  customCats.push({id,name,color,imageUrl:newCatImgUrl,words:[]});
+  saveCustomCats();newCatImgUrl=null;
+  document.getElementById('newCatName').value='';document.getElementById('newCatPictoPreview').innerHTML='<div class="placeholder"><i data-lucide="image-plus" style="width:20px;color:var(--aac-muted);display:block;margin:0 auto .25rem;"></i>Buscar</div>';
+  renderEditorList();toast(`Categoría "${name}" creada`);lucide.createIcons();
+}
+
+// ─── Editar categoría ───
+function openEditCatDlg(id){
+  editCatId=id;const cat=customCats.find(c=>c.id===id);if(!cat) return;
+  document.getElementById('editCatName').value=cat.name;
+  document.getElementById('editCatColor').value=cat.color||'#4f6ef7';
+  const prev=document.getElementById('editCatPictoPreview');
+  prev.innerHTML=cat.imageUrl?`<img src="${cat.imageUrl}" style="max-width:100%;max-height:100%;object-fit:contain;">`:`<div class="placeholder"><i data-lucide="image" style="width:18px;color:var(--aac-muted);display:block;margin:0 auto;"></i></div>`;
+  catPictoSel=cat.imageUrl||null;catPictoFileB64=null;
+  document.getElementById('editCatDlg').classList.add('open');lucide.createIcons();
+}
+function closeEditCatDlg(){document.getElementById('editCatDlg').classList.remove('open');}
+function saveEditCat(){
+  const cat=customCats.find(c=>c.id===editCatId);if(!cat) return;
+  cat.name=document.getElementById('editCatName').value.trim()||cat.name;
+  cat.color=document.getElementById('editCatColor').value;
+  if(catPictoFileB64) cat.imageUrl=catPictoFileB64;
+  else if(catPictoSel) cat.imageUrl=catPictoSel;
+  saveCustomCats();aacCatCache={};closeEditCatDlg();renderEditorList();toast('Categoría actualizada');
+}
+
+// ─── Pictograma de categoría (buscar) ───
+function openCatPictoSearch(target){
+  catPictoTarget=target;catPictoSel=null;catPictoFileB64=null;
+  document.getElementById('catPictoSearchInput').value='';
+  document.getElementById('catPictoResults').innerHTML='<div style="grid-column:1/-1;text-align:center;padding:1rem;color:var(--aac-muted);font-size:.78rem;">Busca para ver opciones.</div>';
+  document.getElementById('catPictoModal').classList.add('open');lucide.createIcons();
+  setTimeout(()=>document.getElementById('catPictoSearchInput').focus(),100);
+}
+function closeCatPictoModal(){document.getElementById('catPictoModal').classList.remove('open');}
+async function searchCatPicto(){
+  const term=clean(document.getElementById('catPictoSearchInput').value.trim());if(!term) return;
+  const res=document.getElementById('catPictoResults');res.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:1rem;color:var(--aac-muted);font-size:.78rem;">Buscando...</div>';catPictoSel=null;
+  let imgs=await fetchArasaac(term);if(!imgs.length){for(const inf of infinitives(term)){imgs=await fetchArasaac(inf);if(imgs.length) break;}}
+  if(!imgs.length){res.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:1rem;color:var(--aac-muted);font-size:.78rem;">Sin resultados</div>';return;}
+  res.innerHTML='';
+  imgs.forEach(url=>{const d=document.createElement('div');d.className='aac-sr-item';d.innerHTML=`<img src="${url}" crossorigin="anonymous">`;d.onclick=()=>{catPictoSel=url;document.querySelectorAll('.aac-sr-item').forEach(x=>x.classList.remove('on'));d.classList.add('on');};res.appendChild(d);});
+  if(imgs.length){catPictoSel=imgs[0];res.children[0].classList.add('on');}
+}
+function handleCatImgFile(event){
+  const file=event.target.files[0];if(!file) return;
+  const rd=new FileReader();rd.onload=async e=>{catPictoFileB64=await compressImg(e.target.result);applyCatPictoPreview(catPictoFileB64);};rd.readAsDataURL(file);event.target.value='';
+}
+function applyCatPictoPreview(url){
+  const prevId=catPictoTarget==='new'?'newCatPictoPreview':'editCatPictoPreview';
+  const prev=document.getElementById(prevId);if(prev) prev.innerHTML=`<img src="${url}" style="max-width:100%;max-height:100%;object-fit:contain;">`;
+}
+function applyCatPicto(){
+  const finalUrl=catPictoFileB64||catPictoSel;if(!finalUrl){toast('Selecciona una imagen primero');return;}
+  applyCatPictoPreview(finalUrl);
+  if(catPictoTarget==='new'){newCatImgUrl=finalUrl;}
+  else if(catPictoTarget==='edit'){catPictoSel=finalUrl;}
+  closeCatPictoModal();
+}
+
+// ─── Modal añadir palabra ───
+function openWordDlg(catId){
+  wordDlgCat=catId;wSelUrl=null;wCapB64=null;wMode='arasaac';
+  document.getElementById('wLabel').value='';document.getElementById('wSearchQ').value='';
+  document.getElementById('wFileName').textContent='';document.getElementById('wUrlInput').value='';
+  document.getElementById('wResults').innerHTML='<div style="grid-column:1/-1;text-align:center;padding:1rem;color:var(--aac-muted);font-size:.78rem;">Escribe la palabra arriba para buscar automáticamente.</div>';
+  setWMode('arasaac');document.getElementById('wordDlg').classList.add('open');lucide.createIcons();
+  setTimeout(()=>document.getElementById('wLabel').focus(),100);
+}
+function closeWordDlg(){document.getElementById('wordDlg').classList.remove('open');}
+function setWMode(m){
+  wMode=m;
+  ['arasaac','file','url'].forEach(x=>{const b=document.getElementById('wm-'+x);if(b) b.classList.toggle('on',x===m);});
+  document.getElementById('w-arasaac').style.display=m==='arasaac'?'block':'none';
+  document.getElementById('w-file').style.display=m==='file'?'block':'none';
+  document.getElementById('w-url').style.display=m==='url'?'block':'none';
+}
+function debounceWordSearch(val){
+  clearTimeout(wSearchDebounce);if(!val.trim()) return;
+  wSearchDebounce=setTimeout(()=>{document.getElementById('wSearchQ').value=val;if(wMode==='arasaac') searchWordPicto();},650);
+}
+async function searchWordPicto(){
+  const term=clean(document.getElementById('wSearchQ').value||document.getElementById('wLabel').value);if(!term) return;
+  const res=document.getElementById('wResults');res.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:1rem;color:var(--aac-muted);font-size:.78rem;">Buscando...</div>';wSelUrl=null;
+  let imgs=await fetchArasaac(term);if(!imgs.length){for(const inf of infinitives(term)){imgs=await fetchArasaac(inf);if(imgs.length) break;}}
+  if(!imgs.length){res.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:1rem;color:var(--aac-muted);font-size:.78rem;">Sin resultados — prueba con otra palabra.</div>';return;}
+  res.innerHTML='';imgs.forEach(url=>{const d=document.createElement('div');d.className='aac-sr-item';d.innerHTML=`<img src="${url}" crossorigin="anonymous">`;d.onclick=()=>{wSelUrl=url;document.querySelectorAll('.aac-sr-item').forEach(x=>x.classList.remove('on'));d.classList.add('on');};res.appendChild(d);});
+  if(imgs.length){wSelUrl=imgs[0];res.children[0].classList.add('on');}
+}
+function handleWordFileSelect(event){
+  const file=event.target.files[0];if(!file) return;
+  document.getElementById('wFileName').textContent=file.name;
+  const rd=new FileReader();
+  rd.onload=async e=>{const isV=file.type.startsWith('video');wCapB64=isV?e.target.result:await compressImg(e.target.result);};
+  rd.readAsDataURL(file);event.target.value='';
+}
+async function saveWord(){
+  const label=document.getElementById('wLabel').value.trim();if(!label){toast('Escribe la palabra o etiqueta');return;}
+  let imageUrl=null,videoSrc=null,images=[];
+  if(wMode==='arasaac'){
+    let sel=wSelUrl;
+    if(!sel){const fetched=await fetchArasaac(clean(label));sel=fetched[0]||null;}
+    imageUrl=sel;if(sel) images=[sel];
+    // Intentar cargar más opciones del cache
+    const more=memCache[clean(label)]||[];images=[...new Set([...images,...more])];
+  } else if(wMode==='file'){
+    if(!wCapB64){toast('Selecciona un archivo de imagen');return;}
+    const isV=wCapB64.startsWith('data:video');if(isV) videoSrc=wCapB64;else{imageUrl=wCapB64;images=[wCapB64];}
+  } else if(wMode==='url'){
+    imageUrl=document.getElementById('wUrlInput').value.trim();if(!imageUrl){toast('Introduce una URL de imagen');return;}images=[imageUrl];
+  }
+  const cat=customCats.find(c=>c.id===wordDlgCat);if(!cat) return;
+  if(!cat.words) cat.words=[];
+  cat.words.push({label,images,ci:0,imageUrl:imageUrl||images[0]||null,videoSrc});
+  await saveCustomCats();aacCatCache={};closeWordDlg();renderEditorList();toast(`"${label}" añadida a "${cat.name}"`);
+}
+
+// ─── Export / Import ───
+async function exportAacConfig(){
+  const hidden=JSON.parse(localStorage.getItem('aac_hidden')||'[]');
+  const cfg={version:'2.0',customCategories:customCats,hiddenDefaults:hidden};
+  const blob=new Blob([JSON.stringify(cfg,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='comunicador_'+new Date().toISOString().split('T')[0]+'.json';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+  toast('Configuración exportada');
+}
+async function importAacConfig(event){
+  const file=event.target.files[0];if(!file) return;
+  const rd=new FileReader();rd.onload=async e=>{
+    try{
+      const cfg=JSON.parse(e.target.result);
+      if(cfg.customCategories) customCats=cfg.customCategories;
+      if(cfg.hiddenDefaults) localStorage.setItem('aac_hidden',JSON.stringify(cfg.hiddenDefaults));
+      await saveCustomCats();aacCatCache={};renderEditorList();toast('Configuración importada');
+    }catch(err){toast('Error al importar — archivo no válido');}
+  };rd.readAsText(file);event.target.value='';
+}
+
+// ════════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════════
+window.onload=async()=>{
+  await initDB();await loadTPictos();await loadAacPictos();await loadCustomCats();
+  document.getElementById('tLangSel').value=tLang;
+  document.getElementById('aacLangSel').value=aacLang;
+  await renderAacRoot();lucide.createIcons();
+  if(isAndroid){const b=document.getElementById('btnMic');if(b){b.style.opacity='.4';b.style.cursor='not-allowed';b.title='No disponible en Android';}}
+};
+</script>
+</body>
+</html>
